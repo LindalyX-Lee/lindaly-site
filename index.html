@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-mode="day">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>林大力 Lindaly · AI 在进化，我也在进化</title>
+<meta name="description" content="林大力 Lindaly：四川 → 清华 → 大厂 → 留学 → 创业，走过 60 国。只分享 AI 亲身实测。这里有她做的小工具、影响她最深的书影声，和东西方智慧的对照。">
+<!-- PREVIEW ONLY: remove this line when promoting to lindaly.cn root -->
+<meta name="robots" content="noindex">
+<meta name="theme-color" id="themeColor" content="#faf7f0">
+<meta property="og:title" content="林大力 Lindaly">
+<meta property="og:description" content="AI 在进化，我也在进化。四川 → 清华 → 大厂 → 留学 → 创业 · 走过 60 国。">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css?v=14">
+</head>
+<body>
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<div class="mountains" id="mountains" aria-hidden="true">
+  <svg class="mtn mtn-far" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path d="M0,320 L0,240 Q120,150 260,210 Q380,260 520,180 Q660,100 800,190 Q940,270 1080,200 Q1220,130 1330,190 L1440,240 L1440,320 Z"/>
+  </svg>
+  <svg class="mtn mtn-mid" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path d="M0,320 L0,270 Q160,190 320,250 Q470,300 620,230 Q780,150 930,240 Q1080,310 1230,250 Q1340,210 1440,260 L1440,320 Z"/>
+  </svg>
+  <svg class="mtn mtn-near" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path d="M0,320 L0,295 Q200,240 400,285 Q580,320 760,275 Q950,225 1130,280 Q1300,325 1440,290 L1440,320 Z"/>
+  </svg>
+</div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="回到顶部">
+    <img class="nav-avatar" src="assets/avatar.jpg" alt="">
+    <span class="brand-name">Lindaly<i>林大力</i></span>
+  </a>
+  <nav class="nav-links" aria-label="主导航">
+    <a href="#playground">作品</a>
+    <a href="#notes">沉淀</a>
+    <a href="#mirrors">相照</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="切换昼夜模式">
+    <span class="nt-day">☀</span><span class="nt-night">☾</span>
+  </button>
+</header>
+
+<main>
+
+  <!-- ░░ HERO：一眼知道我是谁 ░░ -->
+  <section class="hero" id="top">
+    <div class="disc-wrap">
+      <button class="disc" id="disc" aria-label="切换昼夜模式" title="点一下试试">
+        <span class="disc-ring" aria-hidden="true"></span>
+        <span class="disc-ring disc-ring-dash" aria-hidden="true"></span>
+        <span class="disc-orbit" aria-hidden="true"><i></i></span>
+        <span class="disc-body disc-sun" aria-hidden="true">
+          <svg viewBox="0 0 120 120">
+            <defs>
+              <radialGradient id="sunGrad" cx="42%" cy="40%" r="70%">
+                <stop offset="0%" stop-color="#fff3cf"/>
+                <stop offset="55%" stop-color="#f2c14e"/>
+                <stop offset="100%" stop-color="#df9a2b"/>
+              </radialGradient>
+            </defs>
+            <circle cx="60" cy="60" r="58" fill="url(#sunGrad)"/>
+          </svg>
+        </span>
+        <span class="disc-body disc-moon" aria-hidden="true">
+          <svg viewBox="0 0 120 120">
+            <defs>
+              <radialGradient id="moonGrad" cx="45%" cy="42%" r="68%">
+                <stop offset="0%" stop-color="#fbf8ee"/>
+                <stop offset="62%" stop-color="#e9e2c8"/>
+                <stop offset="100%" stop-color="#cfc4a0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="60" cy="60" r="58" fill="url(#moonGrad)"/>
+            <circle cx="44" cy="46" r="9" fill="#d8cda9" opacity=".7"/>
+            <circle cx="72" cy="72" r="6.5" fill="#d8cda9" opacity=".6"/>
+            <circle cx="64" cy="34" r="4.5" fill="#d8cda9" opacity=".55"/>
+          </svg>
+        </span>
+      </button>
+      <p class="disc-cap" id="orbCap">阳中有阴——点那弯小月，入夜 ☾</p>
+    </div>
+
+    <div class="hero-id">
+      <h1 class="hero-motto">AI 在进化，我也在进化。</h1>
+      <p class="motto-en">AI is evolving. So am I.</p>
+      <p class="hero-chain">四川 <i>→</i> 清华 <i>→</i> 大厂 <i>→</i> 留学 <i>→</i> 创业<span class="chain-sep">·</span>走过 60 国</p>
+      <p class="hero-tag">只分享 AI 亲身实测 ｜ 好奇好学，也好吃好耍</p>
+      <p class="hero-en-line">Hands-on AI only · Sichuan → Tsinghua → Big Tech → NYC → Founder · 60 countries</p>
+      <p class="hero-daily" id="heroDaily"></p>
+      <div class="hero-socials" id="heroSocials"></div>
+    </div>
+
+    <a class="scroll-cue" href="#playground" aria-label="往下看">
+      <span></span>
+    </a>
+  </section>
+
+  <!-- ░░ PLAYGROUND ░░ -->
+  <section class="section" id="playground">
+    <header class="sec-head">
+      <h2><span class="sec-zh">我做的小东西</span><span class="sec-en">Lindaly&#8217;s Playground</span></h2>
+    </header>
+    <div class="cards" id="projectCards"></div>
+  </section>
+
+  <!-- ░░ 沉淀 (hidden until data) ░░ -->
+  <section class="section" id="notes" hidden>
+    <header class="sec-head">
+      <h2><span class="sec-zh">沉淀</span><span class="sec-en">What stays</span></h2>
+      <p class="sec-sub">对我影响最大的书、影、声。<span class="sub-en">The books, films &amp; voices that shaped me.</span></p>
+    </header>
+    <div class="notes-list" id="notesList"></div>
+  </section>
+
+  <!-- ░░ MIRRORS ░░ -->
+  <section class="section" id="mirrors">
+    <header class="sec-head">
+      <h2><span class="sec-zh">东西相照</span><span class="sec-en">When two worlds agree</span></h2>
+      <p class="sec-sub">同一个道理，地球两端各说过一次。每次来，抽一对。<span class="sub-en">One truth, told on both ends of the earth — draw a pair.</span></p>
+    </header>
+
+    <div class="mirror-card" id="mirrorCard" aria-live="polite">
+      <div class="mirror-east">
+        <blockquote class="me-quote" id="eastQuote"></blockquote>
+        <cite class="me-src" id="eastSrc"></cite>
+      </div>
+      <div class="mirror-divider" aria-hidden="true">
+        <svg viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="18" class="taiji-ring"/>
+          <path d="M20 2 a18 18 0 0 1 0 36 a9 9 0 0 1 0-18 a9 9 0 0 0 0-18Z" class="taiji-half"/>
+          <circle cx="20" cy="11" r="2.6" class="taiji-dot-b"/>
+          <circle cx="20" cy="29" r="2.6" class="taiji-dot-w"/>
+        </svg>
+        <span class="mirror-eq">同一个道理</span>
+      </div>
+      <div class="mirror-west">
+        <blockquote class="mw-quote" id="westQuote"></blockquote>
+        <cite class="mw-src" id="westSrc"></cite>
+      </div>
+    </div>
+
+    <div class="mirror-actions">
+      <button class="btn-draw" id="redraw">再抽一对</button>
+      <p class="mirror-note" id="mirrorNote"></p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p class="footer-couplet">向西走了四十年，向东找回自己。</p>
+  <p class="footer-couplet-en">Forty years walking West — coming home East.</p>
+  <p class="footer-signoff">好了，我是林大力。</p>
+  <p>© 2026 林大力 Lindaly · lindaly.cn</p>
+</footer>
+
+<script src="app.js?v=14"></script>
+</body>
+</html>
