@@ -46,9 +46,10 @@
   --card-bg: rgba(255, 253, 247, .82);
   --card-line: rgba(120, 100, 60, .18);
   --halo: rgba(238, 184, 77, .28);
-  --mtn-far: rgba(150, 130, 90, .10);
-  --mtn-mid: rgba(120, 110, 80, .08);
-  --mtn-near: rgba(90, 95, 70, .07);
+  --mtn-far-a: #b9d3c4; --mtn-far-b: #e9efe2;
+  --mtn-mid-a: #7caa92; --mtn-mid-b: #c2dac9;
+  --mtn-near-a: #4a7e80; --mtn-near-b: #8fb6a3;
+  --mtn-o-far: .38; --mtn-o-mid: .34; --mtn-o-near: .42;
   --shadow: 0 18px 50px -18px rgba(120, 90, 30, .25);
 
   --font-zh: "Songti SC", "STSong", "STZhongsong", "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif;
@@ -71,9 +72,10 @@ html[data-mode="night"] {
   --card-bg: rgba(18, 24, 44, .78);
   --card-line: rgba(212, 171, 88, .22);
   --halo: rgba(236, 226, 190, .16);
-  --mtn-far: rgba(46, 58, 94, .55);
-  --mtn-mid: rgba(30, 40, 70, .7);
-  --mtn-near: rgba(16, 22, 42, .85);
+  --mtn-far-a: #36436e; --mtn-far-b: #232c4d;
+  --mtn-mid-a: #232c4d; --mtn-mid-b: #161d38;
+  --mtn-near-a: #131a30; --mtn-near-b: #0a0e1d;
+  --mtn-o-far: .8; --mtn-o-mid: .9; --mtn-o-near: .95;
   --shadow: 0 18px 50px -16px rgba(0, 0, 0, .6);
 }
 
@@ -106,10 +108,16 @@ body {
   z-index: 0; pointer-events: none;
 }
 .mtn { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; }
-.mtn path { transition: fill .9s ease; }
-.mtn-far path { fill: var(--mtn-far); }
-.mtn-mid path { fill: var(--mtn-mid); }
-.mtn-near path { fill: var(--mtn-near); }
+/* 千里江山青绿（昼）↔ 水墨黛山（夜） */
+.gs-far-a  { stop-color: var(--mtn-far-a); transition: stop-color .9s; }
+.gs-far-b  { stop-color: var(--mtn-far-b); transition: stop-color .9s; }
+.gs-mid-a  { stop-color: var(--mtn-mid-a); transition: stop-color .9s; }
+.gs-mid-b  { stop-color: var(--mtn-mid-b); transition: stop-color .9s; }
+.gs-near-a { stop-color: var(--mtn-near-a); transition: stop-color .9s; }
+.gs-near-b { stop-color: var(--mtn-near-b); transition: stop-color .9s; }
+.mtn-far  { opacity: var(--mtn-o-far); transition: opacity .9s; }
+.mtn-mid  { opacity: var(--mtn-o-mid); transition: opacity .9s; }
+.mtn-near { opacity: var(--mtn-o-near); transition: opacity .9s; }
 
 main, .nav, .footer { position: relative; z-index: 1; }
 
@@ -250,6 +258,15 @@ html[data-mode="night"] .nt-night { display: inline; }
               box-shadow .9s;
 }
 .disc-body svg { width: 100%; height: 100%; display: block; }
+.disc-moon .moon-full, .disc-moon .moon-crescent {
+  position: absolute; inset: 0;
+  transition: opacity .9s ease;
+}
+/* 昼：小月眼是弯月；夜：渐盈成满月 */
+.disc-moon .moon-full { opacity: 0; }
+.disc-moon .moon-crescent { opacity: 1; }
+html[data-mode="night"] .disc-moon .moon-full { opacity: 1; }
+html[data-mode="night"] .disc-moon .moon-crescent { opacity: 0; }
 
 .disc-sun  { top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 .disc-moon {
@@ -307,26 +324,99 @@ html[data-mode="night"] .disc-moon {
   letter-spacing: .05em;
   margin-top: .45rem;
 }
-.hero-daily {
-  margin-top: 1.3rem;
-  font-family: var(--font-brush);
-  font-size: clamp(1.05rem, 2.4vw, 1.3rem);
-  color: var(--ink); letter-spacing: .08em;
-}
-.hero-daily .yi-seal {
+.yi-seal {
   display: inline-block;
-  font-style: normal;
-  background: var(--seal-red); color: #faf6ec;
-  border-radius: 5px;
+  font-family: var(--font-brush); font-style: normal;
+  color: var(--seal-red);
+  border: 1.6px solid var(--seal-red);
+  border-radius: 6px;
   padding: .02em .32em .08em;
   margin-right: .55em;
   font-size: .88em;
+  line-height: 1.3;
 }
-.hero-daily .daily-en {
+.daily-en {
   font-family: var(--font-en); font-style: italic;
   font-size: .72em; color: var(--ink-soft);
   margin-left: .6em; letter-spacing: .04em;
 }
+
+/* ── 签筒：今日宜 ─────────────────────────── */
+
+.qian-wrap {
+  margin-top: 1.5rem;
+  min-height: 110px;
+  display: flex; justify-content: center; align-items: flex-start;
+}
+.qian-tube {
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: .55rem;
+  transition: scale .3s cubic-bezier(.2, .8, .3, 1.3);
+}
+.qian-tube:hover { scale: 1.06; }
+.qian-tube svg { width: 60px; height: 66px; overflow: visible; }
+.qs { stroke: var(--gold); stroke-width: 2.4; stroke-linecap: round; }
+.qsd { fill: var(--gold-bright); }
+.qc {
+  fill: var(--card-bg);
+  stroke: var(--ink-soft); stroke-width: 2.2; stroke-linejoin: round;
+}
+.qt {
+  font-family: var(--font-brush); font-size: 19px;
+  fill: var(--seal-red); text-anchor: middle;
+}
+.qian-tube.shaking { animation: qshake .13s linear 7; }
+@keyframes qshake {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-7deg) translateY(-2px); }
+  75% { transform: rotate(7deg) translateY(-1px); }
+}
+.qian-label {
+  font-family: var(--font-brush);
+  font-size: 1.02rem; color: var(--ink-soft);
+  letter-spacing: .12em;
+  animation: cap-pulse 3.2s ease-in-out infinite;
+}
+
+.qian-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 1.15rem 1.6rem 1rem;
+  max-width: min(440px, 86vw);
+  animation: rise-in .55s cubic-bezier(.2, .65, .3, 1) both;
+  transition: opacity .3s, transform .3s;
+}
+.qian-card.swap { opacity: 0; transform: scale(.97); }
+.qian-text {
+  font-family: var(--font-brush);
+  font-size: clamp(1.15rem, 2.6vw, 1.35rem);
+  color: var(--ink); letter-spacing: .06em;
+}
+.qian-jie {
+  font-size: .85rem; color: var(--ink-soft);
+  margin-top: .45rem; line-height: 1.9;
+}
+.qian-foot {
+  margin-top: .8rem;
+  display: flex; flex-wrap: wrap; gap: .4rem 1.2rem;
+  justify-content: center; align-items: center;
+  font-size: .76rem; letter-spacing: .06em;
+}
+.qian-foot a { color: var(--gold); text-decoration: none; }
+.qian-foot a:hover { text-decoration: underline; }
+.qian-again {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-brush);
+  font-size: .85rem; color: var(--ink-soft);
+  letter-spacing: .1em;
+  border-bottom: 1px dashed var(--card-line);
+  padding: 0 0 .1em;
+}
+.qian-again:hover { color: var(--gold); border-color: var(--gold); }
 
 .hero-avatar {
   width: clamp(112px, 16vw, 148px); height: clamp(112px, 16vw, 148px);
@@ -351,6 +441,13 @@ html[data-mode="night"] .disc-moon {
   margin-left: .5em;
 }
 
+.hero-motto .motto-ai {
+  font-family: var(--font-en);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--gold);
+}
 .hero-motto {
   font-family: var(--font-brush);
   font-size: clamp(1.5rem, 4.2vw, 2.5rem);
@@ -360,16 +457,33 @@ html[data-mode="night"] .disc-moon {
 }
 
 .hero-chain {
-  margin-top: 1.6rem;
-  font-size: clamp(.88rem, 1.8vw, 1.05rem);
-  letter-spacing: .14em;
-  color: var(--ink-soft);
+  margin-top: 1.7rem;
+  display: flex; flex-wrap: wrap; justify-content: center;
+  align-items: flex-start;
+  gap: .25rem clamp(.4rem, 1.6vw, .9rem);
 }
-.hero-chain i { font-style: normal; color: var(--gold); margin: 0 .15em; }
-.chain-sep { color: var(--gold); margin: 0 .7em; }
+.hero-chain .node {
+  display: inline-flex; flex-direction: column; align-items: center;
+}
+.hero-chain .node b {
+  font-family: var(--font-zh); font-weight: 600;
+  font-size: clamp(.95rem, 2vw, 1.1rem);
+  letter-spacing: .12em; color: var(--ink);
+}
+.hero-chain .node i {
+  font-family: var(--font-en); font-style: italic;
+  font-size: .62rem; color: var(--gold);
+  letter-spacing: .04em; margin-top: .1em;
+}
+.hero-chain .arrow {
+  color: var(--gold); opacity: .65;
+  font-size: .9rem; margin-top: .25em;
+}
+.hero-chain .arrow-dot { opacity: .9; }
 
 .hero-tag {
-  margin-top: .7rem;
+  margin-top: 1rem;
+  opacity: .8;
   font-size: .85rem;
   letter-spacing: .12em;
   color: var(--ink-soft);
@@ -649,6 +763,16 @@ html[data-mode="night"] .disc-moon {
 }
 .social-link:hover { border-color: var(--gold); color: var(--gold); }
 .social-soon { opacity: .55; border-style: dashed; cursor: default; }
+.xhs-badge {
+  display: inline-block;
+  background: #ff2442; color: #fff;
+  font-family: var(--font-body);
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .02em;
+  padding: .16em .5em .2em;
+  border-radius: 6px;
+  line-height: 1.2;
+}
 
 /* ── footer ───────────────────────────────── */
 

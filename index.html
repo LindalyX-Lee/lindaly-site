@@ -13,21 +13,28 @@
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
 
 <canvas id="sky" aria-hidden="true"></canvas>
 
 <div class="mountains" id="mountains" aria-hidden="true">
-  <svg class="mtn mtn-far" viewBox="0 0 1440 320" preserveAspectRatio="none">
-    <path d="M0,320 L0,240 Q120,150 260,210 Q380,260 520,180 Q660,100 800,190 Q940,270 1080,200 Q1220,130 1330,190 L1440,240 L1440,320 Z"/>
-  </svg>
-  <svg class="mtn mtn-mid" viewBox="0 0 1440 320" preserveAspectRatio="none">
-    <path d="M0,320 L0,270 Q160,190 320,250 Q470,300 620,230 Q780,150 930,240 Q1080,310 1230,250 Q1340,210 1440,260 L1440,320 Z"/>
-  </svg>
-  <svg class="mtn mtn-near" viewBox="0 0 1440 320" preserveAspectRatio="none">
-    <path d="M0,320 L0,295 Q200,240 400,285 Q580,320 760,275 Q950,225 1130,280 Q1300,325 1440,290 L1440,320 Z"/>
+  <svg class="mtn" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="gFar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" class="gs-far-a"/><stop offset="1" class="gs-far-b"/>
+      </linearGradient>
+      <linearGradient id="gMid" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" class="gs-mid-a"/><stop offset="1" class="gs-mid-b"/>
+      </linearGradient>
+      <linearGradient id="gNear" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" class="gs-near-a"/><stop offset="1" class="gs-near-b"/>
+      </linearGradient>
+    </defs>
+    <path class="mtn-far" fill="url(#gFar)" d="M0,320 L0,205 L70,150 L130,185 L210,105 L260,160 L330,125 L420,195 L505,85 L580,165 L645,135 L730,195 L825,115 L900,180 L985,140 L1070,205 L1165,120 L1255,190 L1330,155 L1440,205 L1440,320 Z"/>
+    <path class="mtn-mid" fill="url(#gMid)" d="M0,320 L0,255 Q70,185 150,235 L255,155 Q305,130 355,175 L465,245 L555,165 Q615,125 675,185 L775,255 L875,175 L985,245 L1095,165 Q1155,135 1215,195 L1320,265 L1440,195 L1440,320 Z"/>
+    <path class="mtn-near" fill="url(#gNear)" d="M0,320 L0,288 Q115,228 235,275 L375,218 Q448,192 520,236 L660,296 L795,238 Q875,206 955,256 L1095,306 L1235,248 Q1330,218 1440,276 L1440,320 Z"/>
   </svg>
 </div>
 
@@ -68,7 +75,7 @@
           </svg>
         </span>
         <span class="disc-body disc-moon" aria-hidden="true">
-          <svg viewBox="0 0 120 120">
+          <svg class="moon-full" viewBox="0 0 120 120">
             <defs>
               <radialGradient id="moonGrad" cx="45%" cy="42%" r="68%">
                 <stop offset="0%" stop-color="#fbf8ee"/>
@@ -81,18 +88,50 @@
             <circle cx="72" cy="72" r="6.5" fill="#d8cda9" opacity=".6"/>
             <circle cx="64" cy="34" r="4.5" fill="#d8cda9" opacity=".55"/>
           </svg>
+          <svg class="moon-crescent" viewBox="0 0 120 120">
+            <path d="M82 8 A58 58 0 1 0 82 112 A46 46 0 1 1 82 8 Z" fill="url(#moonGrad)"/>
+          </svg>
         </span>
       </button>
       <p class="disc-cap" id="orbCap">阳中有阴——点那弯小月，入夜 ☾</p>
     </div>
 
     <div class="hero-id">
-      <h1 class="hero-motto">AI 在进化，我也在进化。</h1>
+      <h1 class="hero-motto"><em class="motto-ai">AI</em> 在进化，我也在进化。</h1>
       <p class="motto-en">AI is evolving. So am I.</p>
-      <p class="hero-chain">四川 <i>→</i> 清华 <i>→</i> 大厂 <i>→</i> 留学 <i>→</i> 创业<span class="chain-sep">·</span>走过 60 国</p>
+      <div class="hero-chain" aria-label="人生轨迹">
+        <span class="node"><b>四川</b><i>Sichuan</i></span><span class="arrow">→</span>
+        <span class="node"><b>清华</b><i>Tsinghua</i></span><span class="arrow">→</span>
+        <span class="node"><b>大厂</b><i>Big Tech</i></span><span class="arrow">→</span>
+        <span class="node"><b>留学</b><i>NYC</i></span><span class="arrow">→</span>
+        <span class="node"><b>创业</b><i>Founder</i></span><span class="arrow arrow-dot">·</span>
+        <span class="node"><b>60 国</b><i>countries</i></span>
+      </div>
       <p class="hero-tag">只分享 AI 亲身实测 ｜ 好奇好学，也好吃好耍</p>
-      <p class="hero-en-line">Hands-on AI only · Sichuan → Tsinghua → Big Tech → NYC → Founder · 60 countries</p>
-      <p class="hero-daily" id="heroDaily"></p>
+
+      <div class="qian-wrap" id="qianWrap">
+        <button class="qian-tube" id="qianTube" aria-label="摇一支今日签">
+          <svg viewBox="0 0 80 88" aria-hidden="true">
+            <line class="qs" x1="33" y1="10" x2="30" y2="36"/>
+            <line class="qs" x1="43" y1="5" x2="43" y2="36"/>
+            <line class="qs" x1="53" y1="12" x2="56" y2="36"/>
+            <circle class="qsd" cx="33" cy="9" r="2.2"/>
+            <circle class="qsd" cx="43" cy="4" r="2.2"/>
+            <circle class="qsd" cx="53" cy="11" r="2.2"/>
+            <path class="qc" d="M22 34 H58 L55 78 Q40 85 25 78 Z"/>
+            <text class="qt" x="40" y="63">签</text>
+          </svg>
+          <span class="qian-label">今日宜 · 点我摇一签</span>
+        </button>
+        <div class="qian-card" id="qianCard" hidden>
+          <p class="qian-text"><i class="yi-seal">宜</i><span id="qianText"></span></p>
+          <p class="qian-jie" id="qianJie"></p>
+          <p class="qian-foot">
+            <a href="https://www.xiaohongshu.com/user/profile/573dd4a16a6a69332cded880" target="_blank" rel="noopener">想深聊这支签？小红书找我 →</a>
+            <button class="qian-again" id="qianAgain">再摇一支</button>
+          </p>
+        </div>
+      </div>
       <div class="hero-socials" id="heroSocials"></div>
     </div>
 
@@ -160,6 +199,6 @@
   <p>© 2026 林大力 Lindaly · lindaly.cn</p>
 </footer>
 
-<script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>

@@ -121,7 +121,7 @@
   ];
 
   var SOCIALS = [
-    { name: '小红书', url: 'https://www.xiaohongshu.com/user/profile/573dd4a16a6a69332cded880', icon: '✶' },
+    { name: '', url: 'https://www.xiaohongshu.com/user/profile/573dd4a16a6a69332cded880', icon: '<b class="xhs-badge">小红书</b>' },
     { name: '@LindalyX', url: 'https://x.com/LindalyX', icon: '𝕏' }
   ];
 
@@ -174,11 +174,36 @@
 
   /* ══ 天空画布：昼有光斑，夜有星河 ══════════════ */
 
+  /* 同一片星空，两套命名——东西双名星座 */
+  var CONSTELLATIONS = [
+    {
+      label: '北斗 · Big Dipper',
+      box: [0.07, 0.10, 0.24, 0.22],
+      pts: [[0.02, 0.25], [0.20, 0.38], [0.38, 0.35], [0.55, 0.48], [0.80, 0.42], [0.85, 0.72], [0.58, 0.78]],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 3]]
+    },
+    {
+      label: '参宿 · Orion',
+      box: [0.68, 0.12, 0.20, 0.34],
+      pts: [[0.25, 0.08], [0.75, 0.10], [0.40, 0.46], [0.50, 0.50], [0.60, 0.54], [0.78, 0.92], [0.25, 0.90]],
+      lines: [[0, 2], [1, 4], [2, 3], [3, 4], [4, 5], [2, 6]]
+    },
+    {
+      label: '心宿 · Scorpius',
+      box: [0.13, 0.55, 0.18, 0.26],
+      pts: [[0.10, 0.05], [0.30, 0.16], [0.45, 0.32], [0.50, 0.52], [0.56, 0.72], [0.70, 0.86], [0.90, 0.80]],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]
+    }
+  ];
+
   function Sky(canvas) {
     var ctx = canvas.getContext('2d');
     var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
     var mode = 'day';
     var motes = [], stars = [], shooting = null, shootTimer = 0;
+    var constIdx = dateSeed % CONSTELLATIONS.length, constT = 0;
+    var CONST_FADE = 100, CONST_HOLD = 320, CONST_GAP = 50;
+    var CONST_TOTAL = CONST_FADE * 2 + CONST_HOLD + CONST_GAP;
 
     function resize() {
       W = window.innerWidth; H = window.innerHeight;
@@ -283,6 +308,37 @@
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fill();
       }
+      /* 星座：东西双名，轮流亮起 */
+      constT++;
+      if (constT >= CONST_TOTAL) {
+        constT = 0;
+        constIdx = (constIdx + 1) % CONSTELLATIONS.length;
+      }
+      var cAlpha = 0;
+      if (constT < CONST_FADE) cAlpha = constT / CONST_FADE;
+      else if (constT < CONST_FADE + CONST_HOLD) cAlpha = 1;
+      else if (constT < CONST_FADE * 2 + CONST_HOLD) cAlpha = 1 - (constT - CONST_FADE - CONST_HOLD) / CONST_FADE;
+      if (cAlpha > 0) {
+        var c = CONSTELLATIONS[constIdx];
+        var bx = c.box[0] * W, by = c.box[1] * H, bw = c.box[2] * W, bh = c.box[3] * H;
+        var px = function (p) { return [bx + p[0] * bw, by + p[1] * bh]; };
+        ctx.strokeStyle = 'rgba(212,171,88,' + (0.38 * cAlpha) + ')';
+        ctx.lineWidth = 1;
+        var li, p1, p2;
+        for (li = 0; li < c.lines.length; li++) {
+          p1 = px(c.pts[c.lines[li][0]]); p2 = px(c.pts[c.lines[li][1]]);
+          ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+        }
+        for (li = 0; li < c.pts.length; li++) {
+          p1 = px(c.pts[li]);
+          ctx.fillStyle = 'rgba(245,238,215,' + (0.9 * cAlpha) + ')';
+          ctx.beginPath(); ctx.arc(p1[0], p1[1], 2.1, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.font = '13px "MSZ Brush", "Kaiti SC", serif';
+        ctx.fillStyle = 'rgba(234,230,218,' + (0.75 * cAlpha) + ')';
+        ctx.fillText(c.label, bx + bw * 0.1, by + bh + 22);
+      }
+
       /* 流星：偶尔划一道 */
       shootTimer--;
       if (!shooting && shootTimer <= 0) {
@@ -432,26 +488,72 @@
   /* ══ 今日宜：黄历彩蛋，每天换一条 ══════════════ */
 
   var DAILY = [
-    { zh: '把一个小想法做成 demo', en: 'Ship one tiny idea' },
-    { zh: '问一个不好意思问的问题', en: 'Ask the awkward question' },
-    { zh: '出门晒十分钟太阳', en: 'Ten minutes of real sun' },
-    { zh: '给爸妈打个电话', en: 'Call your folks' },
-    { zh: '删掉一个用不上的 App', en: 'Delete one unused app' },
-    { zh: '早睡一小时', en: 'Sleep an hour earlier' },
-    { zh: '学一个 AI 新玩法', en: 'Try one new AI trick' },
-    { zh: '往下抽一对「东西相照」', en: 'Draw a pair below' },
-    { zh: '走一条没走过的路', en: 'Take a road you haven\u2019t' },
-    { zh: '把谢谢说出口', en: 'Say the thank-you out loud' },
-    { zh: '少刷十分钟手机', en: 'Scroll ten minutes less' },
-    { zh: '喝够八杯水', en: 'Drink your water' },
-    { zh: '给自己泡一壶好茶', en: 'Brew yourself proper tea' },
-    { zh: '夸一个朋友的作品', en: 'Praise a friend\u2019s work' }
+    { zh: '把一个小想法做成 demo', en: 'Ship one tiny idea', jie: '想法不值钱，做出来的那一刻才开始升值。' },
+    { zh: '问一个不好意思问的问题', en: 'Ask the awkward question', jie: '脸皮厚一秒，认知厚一层。' },
+    { zh: '出门晒十分钟太阳', en: 'Ten minutes of real sun', jie: '人是光合动物，别骗自己不是。' },
+    { zh: '给爸妈打个电话', en: 'Call your folks', jie: '他们不需要你成功，只需要你出声。' },
+    { zh: '删掉一个用不上的 App', en: 'Delete one unused app', jie: '注意力是块田，杂草要拔。' },
+    { zh: '早睡一小时', en: 'Sleep an hour earlier', jie: '最便宜的进化，是睡够。' },
+    { zh: '学一个 AI 新玩法', en: 'Try one new AI trick', jie: 'AI 在进化，你也别闲着。' },
+    { zh: '往下抽一对「东西相照」', en: 'Draw a pair below', jie: '两千年前的人早把答案写好了，就在这页下面。' },
+    { zh: '走一条没走过的路', en: 'Take a road you haven\u2019t', jie: '导航关掉，惊喜打开。' },
+    { zh: '把谢谢说出口', en: 'Say the thank-you out loud', jie: '心里想的不算数，说出口才作数。' },
+    { zh: '少刷十分钟手机', en: 'Scroll ten minutes less', jie: '刷到的都是别人的人生，省下来的才是你的。' },
+    { zh: '喝够八杯水', en: 'Drink your water', jie: '上工治未病，先从这杯开始。' },
+    { zh: '给自己泡一壶好茶', en: 'Brew yourself proper tea', jie: '快不了的事，就让它慢得值得。' },
+    { zh: '夸一个朋友的作品', en: 'Praise a friend\u2019s work', jie: '你随口一句好，是别人撑下去的一周。' }
   ];
-  var dailyEl = document.getElementById('heroDaily');
-  if (dailyEl) {
-    var daily = DAILY[dateSeed % DAILY.length];
-    dailyEl.innerHTML = '<i class="yi-seal">宜</i>' + daily.zh +
-      '<span class="daily-en">' + daily.en + '</span>';
+
+  var qianTube = document.getElementById('qianTube');
+  var qianCard = document.getElementById('qianCard');
+  var qianText = document.getElementById('qianText');
+  var qianJie = document.getElementById('qianJie');
+  var qianAgain = document.getElementById('qianAgain');
+  var qianIdx = -1;
+  var qianBusy = false;
+
+  function fillQian(i) {
+    qianIdx = i;
+    var d = DAILY[i];
+    qianText.innerHTML = d.zh + '<span class="daily-en">' + d.en + '</span>';
+    qianJie.textContent = '解：' + d.jie;
+  }
+
+  if (qianTube && qianCard) {
+    qianTube.addEventListener('click', function () {
+      if (qianBusy) return;
+      qianBusy = true;
+      if (reducedMotion) {
+        fillQian(dateSeed % DAILY.length);
+        qianTube.hidden = true;
+        qianCard.hidden = false;
+        qianBusy = false;
+        return;
+      }
+      qianTube.classList.add('shaking');
+      setTimeout(function () {
+        qianTube.classList.remove('shaking');
+        fillQian(dateSeed % DAILY.length);
+        qianTube.hidden = true;
+        qianCard.hidden = false;
+        qianBusy = false;
+      }, 950);
+    });
+  }
+  if (qianAgain) {
+    qianAgain.addEventListener('click', function () {
+      if (qianBusy) return;
+      qianBusy = true;
+      var next = Math.floor(Math.random() * (DAILY.length - 1));
+      if (next >= qianIdx) next++;
+      if (reducedMotion) { fillQian(next); qianBusy = false; return; }
+      qianCard.classList.add('swap');
+      setTimeout(function () {
+        fillQian(next);
+        qianCard.classList.remove('swap');
+        qianBusy = false;
+      }, 320);
+    });
   }
 
   /* ══ 滚动渐现 ════════════════════════════════ */
