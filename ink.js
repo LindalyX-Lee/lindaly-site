@@ -33,15 +33,15 @@
   var PALETTES = {
     day: {
       c0: [0.984, 0.973, 0.949],  /* 宣纸暖白 */
-      c1: [0.945, 0.870, 0.660],  /* 阳光金墨（淡） */
-      c2: [0.780, 0.860, 0.805],  /* 山岚玉墨（淡） */
-      c3: [0.995, 0.965, 0.880]   /* 晨光高光 */
+      c1: [0.915, 0.720, 0.330],  /* 阳光金墨（浓） */
+      c2: [0.420, 0.640, 0.520],  /* 山岚玉墨（浓） */
+      c3: [0.880, 0.430, 0.300]   /* 朱砂入水高光 */
     },
     night: {
-      c0: [0.035, 0.050, 0.105],  /* 深水墨底 */
-      c1: [0.180, 0.235, 0.420],  /* 靛蓝墨 */
-      c2: [0.130, 0.330, 0.340],  /* 苍青墨 */
-      c3: [0.880, 0.850, 0.730]   /* 月白高光 */
+      c0: [0.025, 0.040, 0.090],  /* 深水墨底 */
+      c1: [0.150, 0.230, 0.520],  /* 靛蓝墨（浓） */
+      c2: [0.080, 0.420, 0.440],  /* 苍青墨（浓） */
+      c3: [0.920, 0.870, 0.720]   /* 月白高光 */
     }
   };
 
@@ -54,20 +54,30 @@
     'uniform vec3 uC0;uniform vec3 uC1;uniform vec3 uC2;uniform vec3 uC3;',
     'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
     'float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1.0,0.0)),c=hash(i+vec2(0.0,1.0)),d=hash(i+vec2(1.0,1.0));vec2 u=f*f*(3.0-2.0*f);return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}',
-    'float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<6;i++){s+=a*noise(p);p*=2.0;a*=0.5;}return s;}',
+    /* 每层旋转 2.05x 缩放，打破网格规律性 */
+    'float fbm(vec2 p){float s=0.0,a=0.5;mat2 R=mat2(0.80,0.62,-0.62,0.80);for(int i=0;i<6;i++){s+=a*noise(p);p=R*p*2.05;a*=0.5;}return s;}',
+    /* 脊线湍流：abs 折叠出尖锐墨丝拖尾 */
+    'float turb(vec2 p){float s=0.0,a=0.5;mat2 R=mat2(0.80,0.62,-0.62,0.80);for(int i=0;i<5;i++){s+=a*abs(noise(p)*2.0-1.0);p=R*p*2.05;a*=0.5;}return s;}',
     'void main(){',
     '  vec2 uv=gl_FragCoord.xy/uRes.xy;',
-    '  vec2 p=uv*vec2(uRes.x/uRes.y,1.0)*2.4;',
-    '  float t=uTime*0.045;',
-    '  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3-t)));',
-    '  vec2 r=vec2(fbm(p+2.0*q+vec2(1.7,9.2)+t*0.7),fbm(p+2.0*q+vec2(8.3,2.8)-t*0.6));',
-    '  float f=fbm(p+3.0*r);',
+    '  vec2 p=uv*vec2(uRes.x/uRes.y,1.0)*2.2;',
+    '  float t=uTime*0.09;',
+    /* 三重域扭曲，每层不同方向不同速度 = 不可预测的洇散 */
+    '  vec2 q=vec2(fbm(p+vec2(1.7,2.3)+vec2(0.0,t)),fbm(p+vec2(8.3,1.1)+vec2(t*0.7,0.0)));',
+    '  vec2 r=vec2(fbm(p+3.5*q+vec2(1.7,9.2)+vec2(-t*0.6,t*0.4)),fbm(p+3.5*q+vec2(8.3,2.8)+vec2(t*0.5,-t*0.8)));',
+    '  float f=fbm(p+4.0*r);',
+    '  float td=turb(p*1.5+2.5*r+vec2(t*0.35,-t*0.25));',
+    /* 三层墨脉，各自受控覆盖率：底色始终占主导，昼夜分明 */
+    '  float ink1=smoothstep(0.42,0.86,f);',
+    '  float ink2=smoothstep(0.50,0.96,length(q)*0.72);',
+    '  float hi=pow(smoothstep(0.52,0.92,td),2.0);',
     '  vec3 col=uC0;',
-    '  col=mix(col,uC1,clamp(f*f*1.8,0.0,1.0));',
-    '  col=mix(col,uC2,clamp(length(q)*0.62,0.0,1.0));',
-    '  col=mix(col,uC3,clamp(r.x*r.x*1.15,0.0,1.0));',
-    '  float vig=smoothstep(1.15,0.18,length((uv-vec2(0.5,0.40))*vec2(1.0,1.25)));',
-    '  col=mix(uC0,col,0.5+0.5*vig);',
+    '  col=mix(col,uC1,ink1*0.92);',
+    '  col=mix(col,uC2,ink2*0.72);',
+    '  col=mix(col,uC3,hi*0.55);',
+    /* 较轻的中心 vignette：保留磅礴，又不糊文字 */
+    '  float vig=smoothstep(1.30,0.24,length((uv-vec2(0.5,0.42))*vec2(1.0,1.2)));',
+    '  col=mix(uC0,col,0.62+0.38*vig);',
     '  gl_FragColor=vec4(col,1.0);',
     '}'
   ].join('\n');
@@ -109,7 +119,10 @@
 
   /* 当前色 / 目标色：切换昼夜时缓慢 lerp 出"墨色化开"的过渡 */
   function clonePal(p) { return { c0: p.c0.slice(), c1: p.c1.slice(), c2: p.c2.slice(), c3: p.c3.slice() }; }
-  var startMode = (document.documentElement.getAttribute('data-mode') === 'night') ? 'night' : 'day';
+  var urlMode = (function () { try { return new URLSearchParams(location.search).get('mode'); } catch (e) { return null; } })();
+  var startMode = (urlMode === 'night' || urlMode === 'day')
+    ? urlMode
+    : ((document.documentElement.getAttribute('data-mode') === 'night') ? 'night' : 'day');
   var cur = clonePal(PALETTES[startMode]);
   var target = clonePal(PALETTES[startMode]);
 

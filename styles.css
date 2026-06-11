@@ -388,7 +388,7 @@ html[data-mode="night"] .disc-moon {
   color: var(--ink); letter-spacing: .06em;
 }
 .qian-jie {
-  font-size: .85rem; color: var(--ink-soft);
+  font-size: .9rem; color: var(--ink); opacity: .92;
   margin-top: .45rem; line-height: 1.9;
 }
 .qian-foot {
@@ -484,13 +484,13 @@ html[data-mode="night"] .disc-moon {
 }
 
 .hero-tag {
-  margin-top: 1rem;
-  opacity: .8;
-  font-size: .85rem;
-  letter-spacing: .12em;
-  color: var(--ink-soft);
-  opacity: .85;
+  margin-top: 1.15rem;
+  font-family: var(--font-brush);
+  font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+  letter-spacing: .1em;
+  color: var(--ink);
 }
+.hero-tag .tag-sep { color: var(--gold); margin: 0 .35em; }
 
 .hero-socials { display: flex; gap: .8rem; margin-top: 1.7rem; flex-wrap: wrap; justify-content: center; }
 
@@ -541,14 +541,17 @@ html[data-mode="night"] .disc-moon {
   margin-top: .5rem;
 }
 .sec-sub {
-  margin-top: 1rem; color: var(--ink-soft);
-  font-size: .95rem; letter-spacing: .08em;
+  margin-top: 1rem; color: var(--ink);
+  font-family: var(--font-brush);
+  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+  letter-spacing: .08em;
 }
 .sec-sub-hint { opacity: .6; font-size: .82rem; margin-left: .8rem; }
 .sub-en {
-  display: block; margin-top: .35rem;
+  display: block; margin-top: .4rem;
   font-family: var(--font-en); font-style: italic;
-  font-size: .82rem; opacity: .75; letter-spacing: .04em;
+  font-size: .8rem; opacity: .7; letter-spacing: .04em;
+  color: var(--ink-soft);
 }
 
 /* reveal on scroll */
@@ -608,7 +611,7 @@ html[data-mode="night"] .disc-moon {
   font-size: .85rem; font-weight: 400;
   color: var(--ink-soft); letter-spacing: .12em; margin-top: .3rem;
 }
-.card p { font-size: .92rem; color: var(--ink-soft); margin: 1rem 0 .6rem; flex: 1; }
+.card p { font-size: .95rem; color: var(--ink); opacity: .9; margin: 1rem 0 .6rem; flex: 1; }
 .card .card-en {
   font-family: var(--font-en); font-style: italic;
   font-size: .8rem; opacity: .75; flex: 0 0 auto;
@@ -730,7 +733,7 @@ html[data-mode="night"] .disc-moon {
 }
 .note-kind { font-size: .72rem; letter-spacing: .25em; color: var(--gold); }
 .note h3 { font-family: var(--font-zh); font-size: 1.05rem; margin: .5rem 0; font-weight: 600; }
-.note p { font-size: .86rem; color: var(--ink-soft); }
+.note p { font-size: .9rem; color: var(--ink); opacity: .9; }
 .note .note-en {
   font-family: var(--font-en); font-style: italic;
   font-size: .78rem; opacity: .75; margin-top: .5rem;
