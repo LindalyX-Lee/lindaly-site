@@ -60,21 +60,22 @@
     'float turb(vec2 p){float s=0.0,a=0.5;mat2 R=mat2(0.80,0.62,-0.62,0.80);for(int i=0;i<5;i++){s+=a*abs(noise(p)*2.0-1.0);p=R*p*2.05;a*=0.5;}return s;}',
     'void main(){',
     '  vec2 uv=gl_FragCoord.xy/uRes.xy;',
-    '  vec2 p=uv*vec2(uRes.x/uRes.y,1.0)*2.2;',
+    /* 1.5x：更大更完整的墨团结构，去碎 */
+    '  vec2 p=uv*vec2(uRes.x/uRes.y,1.0)*1.5;',
     '  float t=uTime*0.09;',
     /* 三重域扭曲，每层不同方向不同速度 = 不可预测的洇散 */
     '  vec2 q=vec2(fbm(p+vec2(1.7,2.3)+vec2(0.0,t)),fbm(p+vec2(8.3,1.1)+vec2(t*0.7,0.0)));',
-    '  vec2 r=vec2(fbm(p+3.5*q+vec2(1.7,9.2)+vec2(-t*0.6,t*0.4)),fbm(p+3.5*q+vec2(8.3,2.8)+vec2(t*0.5,-t*0.8)));',
-    '  float f=fbm(p+4.0*r);',
-    '  float td=turb(p*1.5+2.5*r+vec2(t*0.35,-t*0.25));',
-    /* 三层墨脉，各自受控覆盖率：底色始终占主导，昼夜分明 */
-    '  float ink1=smoothstep(0.42,0.86,f);',
-    '  float ink2=smoothstep(0.50,0.96,length(q)*0.72);',
-    '  float hi=pow(smoothstep(0.52,0.92,td),2.0);',
+    '  vec2 r=vec2(fbm(p+3.0*q+vec2(1.7,9.2)+vec2(-t*0.6,t*0.4)),fbm(p+3.0*q+vec2(8.3,2.8)+vec2(t*0.5,-t*0.8)));',
+    '  float f=fbm(p+3.2*r);',
+    '  float td=turb(p*1.3+2.0*r+vec2(t*0.35,-t*0.25));',
+    /* 高阈值 = 大片留白清水，墨只在少数几股墨柱里舒展 */
+    '  float ink1=smoothstep(0.55,0.88,f);',
+    '  float ink2=smoothstep(0.62,0.98,length(q)*0.72);',
+    '  float hi=pow(smoothstep(0.60,0.94,td),2.2);',
     '  vec3 col=uC0;',
-    '  col=mix(col,uC1,ink1*0.92);',
-    '  col=mix(col,uC2,ink2*0.72);',
-    '  col=mix(col,uC3,hi*0.55);',
+    '  col=mix(col,uC1,ink1*0.62);',
+    '  col=mix(col,uC2,ink2*0.46);',
+    '  col=mix(col,uC3,hi*0.38);',
     /* 较轻的中心 vignette：保留磅礴，又不糊文字 */
     '  float vig=smoothstep(1.30,0.24,length((uv-vec2(0.5,0.42))*vec2(1.0,1.2)));',
     '  col=mix(uC0,col,0.62+0.38*vig);',
