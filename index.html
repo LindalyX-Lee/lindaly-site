@@ -11,30 +11,13 @@
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<link rel="stylesheet" href="styles.css?v=16">
+<link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
 
 <canvas id="sky" aria-hidden="true"></canvas>
 
-<div class="mountains" id="mountains" aria-hidden="true">
-  <svg class="mtn" viewBox="0 0 1440 320" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="gFar" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" class="gs-far-a"/><stop offset="1" class="gs-far-b"/>
-      </linearGradient>
-      <linearGradient id="gMid" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" class="gs-mid-a"/><stop offset="1" class="gs-mid-b"/>
-      </linearGradient>
-      <linearGradient id="gNear" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" class="gs-near-a"/><stop offset="1" class="gs-near-b"/>
-      </linearGradient>
-    </defs>
-    <path class="mtn-far" fill="url(#gFar)" d="M0,320 L0,205 L70,150 L130,185 L210,105 L260,160 L330,125 L420,195 L505,85 L580,165 L645,135 L730,195 L825,115 L900,180 L985,140 L1070,205 L1165,120 L1255,190 L1330,155 L1440,205 L1440,320 Z"/>
-    <path class="mtn-mid" fill="url(#gMid)" d="M0,320 L0,255 Q70,185 150,235 L255,155 Q305,130 355,175 L465,245 L555,165 Q615,125 675,185 L775,255 L875,175 L985,245 L1095,165 Q1155,135 1215,195 L1320,265 L1440,195 L1440,320 Z"/>
-    <path class="mtn-near" fill="url(#gNear)" d="M0,320 L0,288 Q115,228 235,275 L375,218 Q448,192 520,236 L660,296 L795,238 Q875,206 955,256 L1095,306 L1235,248 Q1330,218 1440,276 L1440,320 Z"/>
-  </svg>
-</div>
+<canvas id="ink" aria-hidden="true"></canvas>
 
 <header class="nav" id="nav">
   <a class="brand" href="#top" aria-label="回到顶部">
@@ -194,6 +177,7 @@
   <p>© 2026 林大力 Lindaly · lindaly.cn</p>
 </footer>
 
-<script src="app.js?v=16"></script>
+<script src="ink.js?v=17"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>

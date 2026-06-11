@@ -97,28 +97,18 @@ body {
 
 /* ── 天空画布 & 远山 ───────────────────────── */
 
+#ink {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  display: block;
+}
 #sky {
   position: fixed; inset: 0;
   width: 100%; height: 100%;
   z-index: 0; pointer-events: none;
 }
 
-.mountains {
-  position: fixed; left: 0; right: 0; bottom: 0;
-  height: min(34vh, 320px);
-  z-index: 0; pointer-events: none;
-}
-.mtn { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; }
-/* 千里江山青绿（昼）↔ 水墨黛山（夜） */
-.gs-far-a  { stop-color: var(--mtn-far-a); transition: stop-color .9s; }
-.gs-far-b  { stop-color: var(--mtn-far-b); transition: stop-color .9s; }
-.gs-mid-a  { stop-color: var(--mtn-mid-a); transition: stop-color .9s; }
-.gs-mid-b  { stop-color: var(--mtn-mid-b); transition: stop-color .9s; }
-.gs-near-a { stop-color: var(--mtn-near-a); transition: stop-color .9s; }
-.gs-near-b { stop-color: var(--mtn-near-b); transition: stop-color .9s; }
-.mtn-far  { opacity: var(--mtn-o-far); transition: opacity .9s; }
-.mtn-mid  { opacity: var(--mtn-o-mid); transition: opacity .9s; }
-.mtn-near { opacity: var(--mtn-o-near); transition: opacity .9s; }
 
 main, .nav, .footer { position: relative; z-index: 1; }
 

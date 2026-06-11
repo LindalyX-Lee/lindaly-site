@@ -141,6 +141,7 @@
     if (tc) tc.setAttribute('content', mode === 'night' ? '#0b0f1e' : '#faf7f0');
     try { localStorage.setItem('lindaly-mode', mode); } catch (e) {}
     if (sky) sky.setMode(mode);
+    if (window.__ink) window.__ink.setMode(mode);
   }
 
   function currentMode() {
