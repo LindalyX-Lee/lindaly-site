@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-mode="day">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- 上线拍板后移除 -->
+<meta name="robots" content="noindex">
+<title>東墨 EastInk · 道生一</title>
+<meta name="description" content="東墨 EastInk · 道生一，一生二，二生三，三生万物。真·流体水墨，墨落不可撤销，此卷不可复现。">
+<meta name="theme-color" content="#faf7f0">
+<link rel="stylesheet" href="./eastink.css">
+</head>
+<body>
+
+  <!-- 流体画布 -->
+  <canvas id="stage" aria-label="水墨流体画布：点击落墨，拖拽搅墨"></canvas>
+
+  <!-- 左上竖排题字 -->
+  <div class="title" aria-hidden="true">
+    <span class="title-main">東墨</span>
+    <span class="title-sub">EastInk · 道生一</span>
+    <span class="seal">墨</span>
+  </div>
+
+  <!-- 演化标签（道生一 / 一生二 / 二生三 / 三生万物） -->
+  <div class="evolve-label" id="evolveLabel" aria-hidden="true"></div>
+
+  <!-- 右下角极小字：卷数 -->
+  <p class="scroll-meta" id="scrollMeta">此卷不可复现</p>
+
+  <!-- 底部居中悬浮工具条 -->
+  <div class="dock" id="dock" role="toolbar" aria-label="水墨工具">
+    <div class="swatches" id="swatches"></div>
+    <span class="dock-sep" aria-hidden="true"></span>
+    <button class="dock-btn" id="autoBtn" aria-pressed="true">自动演墨</button>
+    <button class="dock-btn" id="washBtn">涤净</button>
+  </div>
+
+  <!-- 无 WebGL / reduced-motion 静态海报回退 -->
+  <div class="poster" id="poster" hidden>
+    <span class="poster-title">東墨</span>
+    <p class="poster-note">你的浏览器未开启 WebGL，无法演示流体水墨。<br>道生一，一生二，二生三，三生万物。</p>
+  </div>
+
+  <script src="./eastink.js"></script>
+</body>
+</html>
