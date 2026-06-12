@@ -1,38 +1,49 @@
 /* ─────────────────────────────────────────────
-   東墨 EastInk · 道生一 — 水墨流体引擎
+   東墨 EastInk · v0.2 — 水墨流体引擎
    WebGL stable-fluids (Stam 1999 + Harris GPU Gems 38)
    solver architecture inspired by
    PavelDoGreat/WebGL-Fluid-Simulation (MIT, © 2017 Pavel Dobryakov)
-   —— 自有实现；渲染为「墨吸进宣纸」逐通道光学吸收，非黑底发光烟雾。
+   —— 自有实现。两境合成：
+      日·宣纸 = 逐通道光学吸收 color = paper * exp(-K·dye)（非黑底发光）
+      夜·深水 = 深水底 + 加色发光，墨入夜化光（玄墨→月白，阴阳互转）
 
    每帧 pass：curl → vorticity → divergence → clear → pressure×N
               → gradientSubtract → advect(vel) → advect(dye)
-   合成：color = paper * exp(-K · dye)，K = -log(pigment)；墨缘 granulation。
-   道生一开场 + 自动演墨 + 涤净洗卷 + 近空白自动开新卷（生生不息）。
-   运行时零外部请求。
+   每卷从新种子抽签：三拍开场（主墨随机）+ 环流性格 + 自动续墨。
+   全场 curl-noise 缓流 → 多色相遇、洇染、共同消融。
+   控件：五瓷色碟 + 另起一卷 + 日/月双境。运行时零外部请求。
    ───────────────────────────────────────────── */
 (function () {
   'use strict';
 
   var canvas = document.getElementById('stage');
   var poster = document.getElementById('poster');
-  var dock = document.getElementById('dock');
-  var labelEl = document.getElementById('evolveLabel');
+  var paletteEl = document.getElementById('palette');
+  var renewEl = document.getElementById('renewBtn');
+  var realmToggleEl = document.getElementById('realmToggle');
+  var coupletEl = document.getElementById('couplet');
+  var coupletEastEl = document.getElementById('coupletEast');
+  var coupletWestEl = document.getElementById('coupletWest');
+  var colophonNoteEl = document.getElementById('colophonNote');
+  var colophonTipEl = document.getElementById('colophonTip');
   var metaEl = document.getElementById('scrollMeta');
   if (!canvas) return;
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var isMobile = window.matchMedia('(max-width: 760px)').matches;
 
-  /* ── reduced-motion：不跑模拟，静态海报 + 标签静态 ── */
+  /* 夜境：?realm=night URL 参数直接进（测试 + 可分享），UI 切换同步 */
+  var realm = 'day';
+  try {
+    if (/[?&]realm=night/.test(window.location.search)) realm = 'night';
+  } catch (e) {}
+  document.documentElement.setAttribute('data-realm', realm);
+
+  /* ── reduced-motion：不跑模拟，静态海报 + 一对题跋静态展示 ── */
   if (reduced) {
     canvas.style.display = 'none';
-    if (dock) dock.style.display = 'none';
-    if (poster) {
-      poster.hidden = false;
-      var pn = poster.querySelector('.poster-note');
-      if (pn) pn.textContent = '道生一，一生二，二生三，三生万物。';
-    }
+    [paletteEl, renewEl, realmToggleEl].forEach(function (el) { if (el) el.style.display = 'none'; });
+    if (poster) poster.hidden = false;
     return;
   }
 
@@ -48,8 +59,7 @@
 
   function bail() {
     canvas.style.display = 'none';
-    if (dock) dock.style.display = 'none';
-    if (metaEl) metaEl.style.display = 'none';
+    [paletteEl, renewEl, realmToggleEl, coupletEl].forEach(function (el) { if (el) el.style.display = 'none'; });
     if (poster) poster.hidden = false;
   }
   if (!gl) { bail(); return; }
@@ -129,14 +139,15 @@
   }
   // 五矿色：玄墨 / 朱砂 / 石青 / 石绿 / 藤黄
   // K 缩放各异：玄墨偏高（一色而墨分五色），矿物色偏雅不脏
+  // nightName / glow：夜境每色映射的发光变体（玄墨→月白，黑墨入夜化白，阴阳互转）
   var PIGMENTS = [
-    { id: 'xuanmo',  name: '玄墨', hex: '#1a1a18', K: pigmentK('#1a1a18', 1.15) },
-    { id: 'zhusha',  name: '朱砂', hex: '#c8442e', K: pigmentK('#c8442e', 0.95) },
-    { id: 'shiqing', name: '石青', hex: '#2e5a8f', K: pigmentK('#2e5a8f', 0.95) },
-    { id: 'shilv',   name: '石绿', hex: '#3f8f6a', K: pigmentK('#3f8f6a', 0.95) },
-    { id: 'tenghuang', name: '藤黄', hex: '#e0a82e', K: pigmentK('#e0a82e', 1.0) }
+    { id: 'xuanmo',    name: '玄墨', nightName: '月白', hex: '#1a1a18', glow: '#eaf2fb', K: pigmentK('#1a1a18', 1.15) },
+    { id: 'zhusha',    name: '朱砂', nightName: '赤焰', hex: '#c8442e', glow: '#ff5a3c', K: pigmentK('#c8442e', 0.95) },
+    { id: 'shiqing',   name: '石青', nightName: '月辉', hex: '#2e5a8f', glow: '#5aa6ff', K: pigmentK('#2e5a8f', 0.95) },
+    { id: 'shilv',     name: '石绿', nightName: '萤绿', hex: '#3f8f6a', glow: '#54e6a0', K: pigmentK('#3f8f6a', 0.95) },
+    { id: 'tenghuang', name: '藤黄', nightName: '暖金', hex: '#e0a82e', glow: '#ffcf57', K: pigmentK('#e0a82e', 1.0) }
   ];
-  var currentPigment = 1; // 朱砂默认；道生一首滴用玄墨
+  var currentPigment = 1; // 默认朱砂（每卷开场主墨改为随机抽签，见 beginScroll）
 
   /* ──────────────────────────────────────────
      3. 模拟配置（slow / viscous / graceful ink）
@@ -154,7 +165,7 @@
     SPLAT_RADIUS: 0.22,          // 落墨即带柔边：0.15→0.22
     SPLAT_FORCE: 2600            // 羽流保留但降幅：3500→2600，别把墨喷成丝
   };
-  var washing = 0;               // 涤净进度（>0 时加速耗散 + 水流扫过）
+  var washing = 0;               // 「另起一卷」洗卷进度（>0 时加速耗散 + 水幕扫过）
 
   /* ──────────────────────────────────────────
      4. shader 编译 / 程序封装
@@ -374,15 +385,19 @@
     '}'
   ].join('\n');
 
-  /* ── 合成 pass：宣纸 fbm 纤维 + 逐通道光学吸收 + 墨缘 granulation ── */
+  /* ── 合成 pass：两境分支 ──
+     日：宣纸 fbm 纤维 + 逐通道光学吸收 + 墨缘 granulation
+     夜：深水底 #0c1118 + 微深度噪声 + 加色发光（墨入夜化光，玄墨→月白） */
   var DISPLAY_FRAG = HEADER_F + (supportLinear ? '' : '#define MANUAL\n') +
     (supportLinear ? '' : BILERP) + [
     'varying vec2 vUv;',
     'uniform sampler2D uDye;',     // RGB = 累计颜料浓度（已乘各自 K 后求和存入）
     'uniform vec2 dyeTexelSize;',
     'uniform float aspectRatio;',
-    'uniform float wash;',         // 涤净水流相位 0..1
-    'uniform float washX;',        // 水流扫过的横向位置
+    'uniform float wash;',         // 洗卷水幕相位 0..1
+    'uniform float washX;',        // 水幕扫过的横向位置
+    'uniform float realm;',        // 0=日·宣纸  1=夜·深水
+    'uniform float time;',         // 夜境深度噪声微动
     // 程序化纤维噪声
     'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
     'float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1.0,0.0)),c=hash(i+vec2(0.0,1.0)),d=hash(i+vec2(1.0,1.0));vec2 u=f*f*(3.0-2.0*f);return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}',
@@ -396,14 +411,6 @@
     '}',
     'void main(){',
     '  vec2 uv = vUv;',
-    // 宣纸底：暖白 + fbm 纤维纹理（极轻）+ 四角 vignette 留白
-    '  vec3 paper = vec3(0.980, 0.969, 0.941);',
-    '  float fiber = fbm(uv * vec2(aspectRatio, 1.0) * 380.0);',     // 细密纸纹
-    '  float blotch = fbm(uv * vec2(aspectRatio, 1.0) * 6.0);',      // 大尺度纸色不均
-    '  paper -= (fiber - 0.5) * 0.018;',
-    '  paper -= (blotch - 0.5) * 0.012;',
-    '  float vig = smoothstep(1.35, 0.35, length((uv - 0.5) * vec2(1.0, 1.08)));',
-    '  paper = mix(paper * 0.985, paper, 0.5 + 0.5 * vig);',          // 边缘略沉，中心亮（留白）
     // 累计吸收 K·dye（dye 已存 sum(K_i * concentration_i)）
     '  vec3 absK = sampleDye(uv);',
     // 墨缘 granulation：只在「低密度边缘」隐约一线（不满身结壳）
@@ -414,18 +421,51 @@
     '  float dT = length(sampleDye(uv + vec2(0.0, e.y)));',
     '  float dB = length(sampleDye(uv - vec2(0.0, e.y)));',
     '  float grad = abs(dR - dL) + abs(dT - dB);',
-    // 权重 1.6→0.5，且按密度软门控：浓墨身（dC 大）几乎不加深，只在稀薄墨缘起效
     '  float edgeGate = 1.0 - smoothstep(0.15, 0.6, dC);',
     '  absK *= 1.0 + grad * 0.5 * edgeGate;',
-    // 涤净：一道水流横扫，扫过处吸收被冲淡
+    // 洗卷：一道水幕横扫，扫过处吸收被冲淡
     '  if (wash > 0.0) {',
     '    float band = smoothstep(0.16, 0.0, abs(uv.x - washX));',
     '    absK *= 1.0 - band * 0.9 * wash;',
     '    absK *= 1.0 - wash * 0.25;',
     '  }',
-    // 逐通道光学吸收：color = paper * exp(-absK)；clamp 保证 col ≤ paper（不出现比纸亮的白心）
     '  absK = max(absK, 0.0);',
-    '  vec3 col = paper * exp(-absK);',
+    '  vec3 col;',
+    '  if (realm < 0.5) {',
+    // ── 日·宣纸：暖白 + fbm 纤维 + vignette 留白，逐通道吸收 ──
+    '    vec3 paper = vec3(0.980, 0.969, 0.941);',
+    '    float fiber = fbm(uv * vec2(aspectRatio, 1.0) * 380.0);',
+    '    float blotch = fbm(uv * vec2(aspectRatio, 1.0) * 6.0);',
+    '    paper -= (fiber - 0.5) * 0.018;',
+    '    paper -= (blotch - 0.5) * 0.012;',
+    '    float vig = smoothstep(1.35, 0.35, length((uv - 0.5) * vec2(1.0, 1.08)));',
+    '    paper = mix(paper * 0.985, paper, 0.5 + 0.5 * vig);',
+    '    col = paper * exp(-absK);',     // color = paper * exp(-K·dye)
+    '  } else {',
+    // ── 夜·深水：深水底 + 微深度噪声，墨改加色发光渲染 ──
+    // 深水底色 #0c1118 系 + 极缓动的深度噪声（水有深浅，不是死黑）
+    '    vec3 deep = vec3(0.047, 0.067, 0.094);',
+    '    float depth = fbm(uv * vec2(aspectRatio, 1.0) * 3.2 + vec2(0.0, time * 0.012));',
+    '    deep += (depth - 0.5) * vec3(0.012, 0.018, 0.028);',
+    '    float vigN = smoothstep(1.45, 0.25, length((uv - 0.5) * vec2(1.0, 1.08)));',
+    '    deep *= 0.78 + 0.22 * vigN;',
+    // 从吸收签名反推发光色：透射色 vis=exp(-absK) 携带颜料色相（朱砂偏红/石青偏蓝…），
+    // 其「与灰的偏离」即色相方向；玄墨吸收近中性高 → vis 近中性 → 无色相 → special 化月白。
+    '    float amt = 1.0 - exp(-dC * 0.85);',          // 墨量 0..1（越浓越亮），亮度曲线柔
+    '    vec3 vis = exp(-absK);',
+    '    float lum = dot(vis, vec3(0.333));',
+    '    vec3 chroma = vis - vec3(lum);',               // 色相方向（去亮度）
+    '    float chromaMag = length(chroma);',
+    // 玄墨判定：吸收高(dC 大) 且 色相弱(chromaMag 小) → 黑墨入夜化白（月白偏冷白）
+    '    float moonW = smoothstep(0.22, 0.05, chromaMag) * smoothstep(0.25, 0.9, dC);',
+    // 彩色发光：以色相方向提纯成饱和发光色（归一化 chroma 抬到发光强度）
+    '    vec3 tint = normalize(max(chroma, vec3(0.0)) + vec3(0.0008));',
+    '    vec3 chromaGlow = tint * 1.35 + vec3(0.12);',  // 留一点白芯，发光不死板
+    '    vec3 moonGlow = vec3(0.86, 0.91, 1.0);',       // 月白：冷白
+    '    vec3 glowCol = mix(chromaGlow, moonGlow, moonW);',
+    '    vec3 emissive = glowCol * amt * 1.15;',         // 加色发光，不挂 bloom 管线
+    '    col = deep + emissive;',
+    '  }',
     '  gl_FragColor = vec4(col, 1.0);',
     '}'
   ].join('\n');
@@ -516,6 +556,26 @@
     curl = createFBO(simRes.w, simRes.h, fmtR, gl.NEAREST);
     pressure = createDouble(simRes.w, simRes.h, fmtR, gl.NEAREST);
   }
+  // context 真丢失后 program/buffer 全部失效：整套重编译 + 重建 quad + 重建 FBO
+  function rebuildGL() {
+    splatPrg = program(BASE_VERT, SPLAT_FRAG);
+    advectPrg = program(BASE_VERT, ADVECT_FRAG);
+    divergencePrg = program(BASE_VERT, DIVERGENCE_FRAG);
+    curlPrg = program(BASE_VERT, CURL_FRAG);
+    vorticityPrg = program(BASE_VERT, VORTICITY_FRAG);
+    pressurePrg = program(BASE_VERT, PRESSURE_FRAG);
+    clearPrg = program(BASE_VERT, CLEAR_FRAG);
+    gradientPrg = program(BASE_VERT, GRADIENT_FRAG);
+    displayPrg = program(BASE_VERT, DISPLAY_FRAG);
+    if (!splatPrg || !advectPrg || !divergencePrg || !curlPrg || !vorticityPrg ||
+        !pressurePrg || !clearPrg || !gradientPrg || !displayPrg) { return false; }
+    quad = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    velocity = null;   // 旧 FBO 句柄已随 context 失效，置空让 initFramebuffers 跳过 destroy 死对象
+    initFramebuffers();
+    return true;
+  }
   function getRes(res) {
     var aspect = gl.drawingBufferWidth / gl.drawingBufferHeight;
     if (aspect < 1) aspect = 1.0 / aspect;
@@ -553,16 +613,17 @@
      7. splat（落墨 / 搅墨）
         颜料以「K·浓度」累加进 dye 纹理：合成端直接 exp(-sum)
      ────────────────────────────────────────── */
-  function splat(x, y, dx, dy, pigIdx, concentration) {
+  function splat(x, y, dx, dy, pigIdx, concentration, radiusScale) {
     var pig = PIGMENTS[pigIdx];
     var aspect = canvas.width / canvas.height;
+    var r = correctRadius((config.SPLAT_RADIUS * (radiusScale || 1)) / 100.0);
     // 速度注入
     bindQuad(splatPrg);
     gl.uniform1i(splatPrg.uniforms.uTarget, velocity.read.attach(0));
     gl.uniform1f(splatPrg.uniforms.aspectRatio, aspect);
     gl.uniform2f(splatPrg.uniforms.point, x, y);
     gl.uniform3f(splatPrg.uniforms.color, dx, dy, 0.0);
-    gl.uniform1f(splatPrg.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
+    gl.uniform1f(splatPrg.uniforms.radius, r);
     blit(velocity.write); velocity.swap();
     // 颜料注入：存 K * 浓度（合成端做 exp(-absK)）
     gl.uniform1i(splatPrg.uniforms.uTarget, dye.read.attach(0));
@@ -583,7 +644,7 @@
     var force = opts.force != null ? opts.force : config.SPLAT_FORCE;
     var dxBias = opts.dx != null ? opts.dx : (Math.random() - 0.5) * 400;
     var dyDown = opts.dy != null ? opts.dy : -force; // y 向下（UV y 向上，故负）
-    splat(x, y, dxBias, dyDown, pigIdx, conc);
+    splat(x, y, dxBias, dyDown, pigIdx, conc, opts.radiusScale);
   }
 
   /* ──────────────────────────────────────────
@@ -648,14 +709,16 @@
     blit(dye.write); dye.swap();
   }
 
-  /* ── 渲染合成（到屏幕）── */
-  function render() {
+  /* ── 渲染合成（到屏幕）：两境由 realm uniform 分支 ── */
+  function render(now) {
     bindQuad(displayPrg);
     gl.uniform1i(displayPrg.uniforms.uDye, dye.read.attach(0));
     gl.uniform2f(displayPrg.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
     gl.uniform1f(displayPrg.uniforms.aspectRatio, canvas.width / canvas.height);
     gl.uniform1f(displayPrg.uniforms.wash, washing);
     gl.uniform1f(displayPrg.uniforms.washX, washX);
+    gl.uniform1f(displayPrg.uniforms.realm, realm === 'night' ? 1.0 : 0.0);
+    gl.uniform1f(displayPrg.uniforms.time, (now || 0) * 0.001);
     blit(null);
   }
 
@@ -678,31 +741,98 @@
      落墨累加，时间按 DENSITY_DISSIPATION 指数衰减；低于阈值即近空白。 */
   var inkBudget = 0;
 
+  /* 速度场专用注入（只搅水不落墨）：环流缓流 / 拖拽搅墨复用 */
+  function splatVelocity(x, y, dx, dy, radiusScale) {
+    bindQuad(splatPrg);
+    gl.uniform1i(splatPrg.uniforms.uTarget, velocity.read.attach(0));
+    gl.uniform1f(splatPrg.uniforms.aspectRatio, canvas.width / canvas.height);
+    gl.uniform2f(splatPrg.uniforms.point, x, y);
+    gl.uniform3f(splatPrg.uniforms.color, dx, dy, 0.0);
+    gl.uniform1f(splatPrg.uniforms.radius, correctRadius((config.SPLAT_RADIUS * (radiusScale || 1)) / 100.0));
+    blit(velocity.write); velocity.swap();
+  }
+
   /* ──────────────────────────────────────────
-     10. 道生一编排 + 自动演墨 + 涤净 + 卷数
+     10. 每卷生成语法（随机感引擎）+ 环流性格 + 自动续墨 + 洗卷
      ────────────────────────────────────────── */
   var scrollN = 0;
   var seed = 0;
-  function rand() { // 每卷可换种子；演化本身不可复现（GPU 浮点 + 时序）
+  function rand() { // 每卷换种子；演化本身亦不可复现（GPU 浮点 + 时序）
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   }
   function newSeed() { seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0; }
+  function rng(a, b) { return a + (b - a) * rand(); }
 
-  function pickPigment(excludeIdx) {
-    var i;
-    do { i = Math.floor(rand() * PIGMENTS.length); } while (i === excludeIdx);
-    return i;
+  // 5 选 3 不重复有序抽（主墨不固定，随机感来源之一）
+  function pick3Pigments() {
+    var pool = [0, 1, 2, 3, 4], out = [];
+    for (var k = 0; k < 3; k++) {
+      var i = Math.floor(rand() * pool.length);
+      out.push(pool.splice(i, 1)[0]);
+    }
+    return out;
   }
 
-  // 标签
-  var labelTimer = null;
-  function showLabel(text, holdMs) {
-    if (!labelEl) return;
-    labelEl.textContent = text;
-    labelEl.classList.add('show');
-    if (labelTimer) clearTimeout(labelTimer);
-    labelTimer = setTimeout(function () { labelEl.classList.remove('show'); }, holdMs || 2500);
+  var CN_NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+  function cnNum(n) {
+    if (n <= 10) return CN_NUM[n];
+    if (n < 20) return '十' + (n % 10 === 0 ? '' : CN_NUM[n % 10]);
+    if (n < 100) return CN_NUM[Math.floor(n / 10)] + '十' + (n % 10 === 0 ? '' : CN_NUM[n % 10]);
+    return String(n);
+  }
+
+  // 题跋区：拍序小注（道生一 / 一生二 …）随拍浮现
+  var tipTimer = null;
+  function showTip(text, holdMs) {
+    if (!colophonTipEl) return;
+    colophonTipEl.textContent = text;
+    colophonTipEl.classList.add('show');
+    if (tipTimer) clearTimeout(tipTimer);
+    tipTimer = setTimeout(function () { colophonTipEl.classList.remove('show'); }, holdMs || 2600);
+  }
+
+  /* ── 东西相照题跋：九对真实出处，抽签不放回，九卷内不重复 ── */
+  var COUPLETS = [
+    { e: '上善若水', w: '“Panta rhei — 万物皆流.” — Heraclitus 赫拉克利特', note: '上善若水 ——《道德经》／ 万物皆流 — Heraclitus' },
+    { e: '逝者如斯夫，不舍昼夜', w: '“You cannot step into the same river twice.” — Heraclitus', note: '逝者如斯夫 ——《论语》／ — Heraclitus' },
+    { e: '道生一，一生二，二生三，三生万物', w: '“From all things one, and from one all things.” — Heraclitus', note: '道生一 ——《道德经》／ — Heraclitus' },
+    { e: '大象无形', w: '“Nature loves to hide.” — Heraclitus', note: '大象无形 ——《道德经》／ — Heraclitus' },
+    { e: '反者道之动', w: '“The way up and the way down are one and the same.” — Heraclitus', note: '反者道之动 ——《道德经》／ — Heraclitus' },
+    { e: '覆水难收', w: '“What’s done cannot be undone.” — Shakespeare 《Macbeth》', note: '覆水难收 —— 汉语成语 ／ — Shakespeare' },
+    { e: '天下莫柔弱于水', w: '“In rivers, the water you touch is the last of what has passed and the first of that which comes.” — Leonardo da Vinci', note: '天下莫柔弱于水 ——《道德经》／ — Leonardo da Vinci' },
+    { e: '万物并作，吾以观复', w: '“In all things of nature there is something of the marvelous.” — Aristotle', note: '万物并作，吾以观复 ——《道德经》／ — Aristotle' },
+    { e: '知者乐水', w: '“Be water, my friend.” — Bruce Lee 李小龙', note: '知者乐水 ——《论语》／ — Bruce Lee 李小龙' }
+  ];
+  var coupletBag = [];
+  function drawCouplet() {
+    if (coupletBag.length === 0) {                 // 洗牌补袋（抽签不放回）
+      coupletBag = COUPLETS.map(function (_, i) { return i; });
+      for (var i = coupletBag.length - 1; i > 0; i--) {
+        var j = Math.floor(rand() * (i + 1));
+        var t = coupletBag[i]; coupletBag[i] = coupletBag[j]; coupletBag[j] = t;
+      }
+    }
+    return COUPLETS[coupletBag.pop()];
+  }
+  var coupletTimers = [];
+  function clearCouplets() { coupletTimers.forEach(clearTimeout); coupletTimers = []; }
+  function laterC(fn, ms) { coupletTimers.push(setTimeout(fn, ms)); }
+
+  function showCouplet(pair) {
+    if (!coupletEl || !coupletEastEl || !coupletWestEl) return;
+    coupletEastEl.textContent = pair.e;
+    coupletWestEl.textContent = pair.w;
+    coupletEl.classList.remove('fade');
+    // 0.5s 淡入
+    laterC(function () { coupletEl.classList.add('show'); }, 60);
+    // 6s 内淡出
+    laterC(function () { coupletEl.classList.remove('show'); coupletEl.classList.add('fade'); }, 6000);
+    // 淡出后缩入右下题跋区与卷号共存
+    laterC(function () {
+      coupletEl.classList.remove('fade');
+      if (colophonNoteEl) { colophonNoteEl.textContent = pair.note; colophonNoteEl.classList.add('show'); }
+    }, 7600);
   }
 
   var introTimers = [];
@@ -710,108 +840,184 @@
   function later(fn, ms) { introTimers.push(setTimeout(fn, ms)); }
 
   // 卷状态机
-  var autoOn = true;
   var autoTimer = null;
   var nearBlankSince = 0;
   var introActive = false;
 
+  // 环流性格三选一：每卷一个 curl-noise 缓流场，让多色相遇、洇染、共同消融
+  // kind: 0 微风(定向缓漂) / 1 回漩(全场慢涡) / 2 对流(双胞环流)
+  var flow = { kind: 0, dir: 0, strength: 1, t: 0 };
+  function rollFlowPersona() {
+    flow.kind = Math.floor(rand() * 3);
+    flow.dir = rand() * Math.PI * 2;
+    flow.strength = rng(0.8, 1.25);
+    flow.t = rand() * 1000;
+  }
+
   function beginScroll() {
     scrollN += 1;
-    if (metaEl) metaEl.textContent = '此卷不可复现 · 第 ' + scrollN + ' 卷';
+    if (metaEl) metaEl.textContent = '第 ' + cnNum(scrollN) + ' 卷 · 不可复现';
+    if (colophonNoteEl) colophonNoteEl.classList.remove('show');
     newSeed();
     resetField();
     inkBudget = 0;
     nearBlankSince = 0;
     introActive = true;
     clearIntro();
+    clearCouplets();
+    clearTimeout(tipTimer);                  // 清旧卷残留的隐藏 timer，避免到点吞掉新卷刚浮现的拍序小注
+    rollFlowPersona();
 
-    var midX = 0.5, topY = 0.86;
-    var c1 = 1, c2, c3; // c1 玄墨固定（道生一首滴）
-    c2 = pickPigment(0);
-    c3 = pickPigment(c2);
+    // 东西相照题跋：开卷浮现一对
+    showCouplet(drawCouplet());
 
-    // t≈1.2s 一滴玄墨自上方落下（向下墨柱羽流，柔不掏空）+「道生一」
+    // 三拍开场保持「一→二→三」哲学骨架，但每拍参数全随机（随机感+宿命感）
+    var pigs = pick3Pigments();                       // 5 选 3 不重复有序：主墨不固定
+    var tips = ['道生一', '一生二', '二生三'];
+    // 落点：上沿 / 左右上沿随机段；羽流向量：垂直 ±35°、力度 0.7–1.4×；拍间隔随机
+    var t = 0;
+    [0, 1, 2].forEach(function (b) {
+      var interval = b === 0 ? rng(1000, 2000) : rng(3000, 6000);
+      t += interval;
+      var when = t;
+      var pig = pigs[b];
+      // 落点横向分段：第一拍中上区，二三拍偏左 / 偏右上沿
+      var x = b === 0 ? rng(0.40, 0.60) : (b === 1 ? rng(0.20, 0.45) : rng(0.55, 0.80));
+      var y = rng(0.74, 0.90);                          // 上沿
+      var ang = (rand() - 0.5) * (70 * Math.PI / 180);  // 垂直 ±35°
+      var f = config.SPLAT_FORCE * rng(0.7, 1.4);       // 力度 0.7–1.4×
+      var dxV = Math.sin(ang) * f;
+      var dyV = -Math.cos(ang) * f;                      // 主向下（UV y 向上故负）
+      var conc = b === 0 ? rng(0.9, 1.05) : rng(0.78, 0.95);
+      later(function () {
+        dropInk(x, y, pig, { concentration: conc, force: f, dx: dxV, dy: dyV });
+        inkBudget += conc;
+        showTip(tips[b], 2600);
+      }, when);
+    });
+    // 「三生万物」后：环流性格接管 + 自动续墨节奏
     later(function () {
-      dropInk(midX + (rand() - 0.5) * 0.05, topY, 0, { concentration: 1.0, force: config.SPLAT_FORCE * 1.0, dx: (rand() - 0.5) * 200 });
-      inkBudget += 1.0;
-      showLabel('道生一', 2500);
-    }, 1200);
-    // t≈5s 第二色偏侧 +「一生二」
-    later(function () {
-      dropInk(0.34 + rand() * 0.06, 0.7, c2, { concentration: 0.85, force: config.SPLAT_FORCE * 0.9 });
-      inkBudget += 0.85;
-      showLabel('一生二', 2500);
-    }, 5000);
-    // t≈9s 第三色 +「二生三」
-    later(function () {
-      dropInk(0.64 + rand() * 0.06, 0.72, c3, { concentration: 0.85, force: config.SPLAT_FORCE * 0.9 });
-      inkBudget += 0.85;
-      showLabel('二生三', 2500);
-    }, 9000);
-    // t≈13s 自动演墨接管 +「三生万物」永退（本卷内）
-    later(function () {
-      showLabel('三生万物', 3200);
+      showTip('三生万物', 3200);
       introActive = false;
       scheduleAuto();
-    }, 13000);
+    }, t + rng(3000, 5000));
   }
 
-  // 自动演墨：每 6–14s 一次轻柔随机落墨
+  // 自动续墨：每 5–12s 一次轻柔随机落墨，滴径有方差（生生不息，永远是活的）
   function scheduleAuto() {
     if (autoTimer) clearTimeout(autoTimer);
-    var delay = 6000 + rand() * 8000;
+    var delay = rng(5000, 12000);
     autoTimer = setTimeout(function () {
-      if (autoOn && !introActive && document.visibilityState === 'visible') {
-        var x = 0.18 + rand() * 0.64;
-        var y = 0.3 + rand() * 0.5;
+      if (!introActive && washing === 0 && document.visibilityState === 'visible') {
+        var x = rng(0.16, 0.84);
+        var y = rng(0.28, 0.82);
         var pig = Math.floor(rand() * PIGMENTS.length);
-        dropInk(x, y, pig, { concentration: 0.55 + rand() * 0.35, force: config.SPLAT_FORCE * (0.6 + rand() * 0.5), dy: -config.SPLAT_FORCE * (0.4 + rand() * 0.4) });
-        inkBudget += 0.7;
+        var conc = rng(0.5, 0.92);
+        var ang = rand() * Math.PI * 2;
+        var f = config.SPLAT_FORCE * rng(0.5, 1.05);
+        // 落点带轻向下羽流 + 滴径方差（生生不息，永远是活的）
+        dropInk(x, y, pig, {
+          concentration: conc,
+          force: f,
+          dx: Math.cos(ang) * f * 0.5,
+          dy: -Math.abs(Math.sin(ang)) * f - f * 0.3,
+          radiusScale: rng(0.7, 1.5)
+        });
+        inkBudget += conc;
       }
       scheduleAuto();
     }, delay);
   }
 
-  // 涤净：约 3s 洗卷（耗散加速 + 水流横扫），完后开新卷
-  // washing 已在配置块声明（step/render 引用）；这里只补 washX / washStart
+  /* 全场环流缓流：curl-noise 力场，per 卷性格。强度要「缓」——水有性情，不是搅拌机。
+     在低分辨率网格上撒少量速度脉冲（只搅水不落墨），让分离的墨团彼此漂近、相遇、洇染。 */
+  function vnoise2(x, y) {
+    var s = Math.sin(x * 1.7 + y * 0.6) + Math.sin(y * 1.3 - x * 0.9) * 0.7 + Math.sin((x + y) * 0.8) * 0.5;
+    return s / 2.2;
+  }
+  var flowAccum = 0;
+  function ambientFlow(now, dt) {
+    if (washing > 0) return;
+    flow.t += dt;
+    flowAccum += dt;
+    // 约每 0.16s 注入一轮（缓），避免每帧灌入把场打硬
+    if (flowAccum < 0.16) return;
+    flowAccum = 0;
+    var base = 26 * flow.strength;                       // 缓流基础力度（远低于落墨 SPLAT_FORCE）
+    var phase = flow.t * 0.05;
+    var n = 5;                                            // 每轮少量点，疏密随机
+    for (var k = 0; k < n; k++) {
+      var x = rand(), y = rand();
+      var dx = 0, dy = 0;
+      if (flow.kind === 0) {
+        // 微风：定向缓漂 + 轻微 curl 扰动
+        var c = vnoise2(x * 4 + phase, y * 4);
+        dx = Math.cos(flow.dir) * base + Math.cos(flow.dir + 1.57) * c * base * 0.5;
+        dy = Math.sin(flow.dir) * base + Math.sin(flow.dir + 1.57) * c * base * 0.5;
+      } else if (flow.kind === 1) {
+        // 回漩：全场慢涡（绕中心切向）
+        var rx = x - 0.5, ry = y - 0.5;
+        var sgn = flow.dir > Math.PI ? -1 : 1;
+        dx = -ry * base * 2.0 * sgn;
+        dy = rx * base * 2.0 * sgn;
+      } else {
+        // 对流：双胞环流（左涡 + 右涡 + curl 噪声软化）
+        var cx = x < 0.5 ? 0.27 : 0.73;
+        var rx2 = x - cx, ry2 = y - 0.5;
+        var sgn2 = x < 0.5 ? 1 : -1;
+        var cc = vnoise2(x * 5 - phase, y * 5);
+        dx = (-ry2 * base * 2.2 + cc * base * 0.4) * sgn2;
+        dy = (rx2 * base * 2.2) * sgn2;
+      }
+      splatVelocity(x, y, dx, dy, 2.4);
+    }
+  }
+
+  // 「另起一卷」：约 4s 可见洗卷大动作（水幕横扫 + 墨色褪尽 + 留白呼吸 + 新卷开张）
   var washX = 0.5;
   var washStart = 0;
+  var WASH_MS = 4000;
   function startWash() {
     if (washing > 0) return;
+    washing = 0.001;                 // 同帧连点防护：立即占位，下一帧 updateWash 即按 washStart 重算
     washStart = performance.now();
     washX = -0.1;
+    if (colophonNoteEl) colophonNoteEl.classList.remove('show');
+    if (coupletEl) coupletEl.classList.remove('show');
   }
   function updateWash(now) {
     if (washStart === 0) { washing = 0; return; }
-    var WASH_MS = 3000;
     var p = (now - washStart) / WASH_MS;
     if (p >= 1) {
       washStart = 0; washing = 0;
-      beginScroll();             // 洗完开新一卷（道生一重演）
+      beginScroll();                                     // 留白呼吸后新卷开张（新种子 + 新题跋）
       return;
     }
-    // 钟形：中段最强
-    washing = Math.sin(p * Math.PI);
-    washX = -0.1 + p * 1.2;      // 水流从左扫到右
+    // 0–0.62：水幕横扫冲墨；0.62–1：留白呼吸（washing 渐隐，washX 出场外）
+    if (p < 0.62) {
+      var q = p / 0.62;
+      washing = Math.sin(q * Math.PI * 0.85);            // 扫过段最强
+      washX = -0.1 + q * 1.2;                            // 一道水幕从左扫到右
+    } else {
+      washing = (1 - (p - 0.62) / 0.38) * 0.18;          // 余韵渐隐，留白呼吸 ~1.5s
+      washX = 1.3;
+    }
   }
 
-  // 近空白自动开新卷：inkBudget 时间耗散估计
+  // 近空白安全网：长时间无墨则刷新题跋开新卷（页面永远是活的，频率放缓）
   function maybeAutoRenew(now, dt) {
-    // inkBudget 指数耗散，近似 dye 的可见衰减
     inkBudget *= Math.exp(-config.DENSITY_DISSIPATION * dt * 0.9);
     if (introActive || washing > 0) { nearBlankSince = 0; return; }
-    if (inkBudget < 0.06) {
+    if (inkBudget < 0.05) {
       if (nearBlankSince === 0) nearBlankSince = now;
-      else if (now - nearBlankSince > 5000) {   // 持续近空白 5s
-        beginScroll();                          // 生生不息：自动新卷
-      }
+      else if (now - nearBlankSince > 9000) { beginScroll(); }
     } else {
       nearBlankSince = 0;
     }
   }
 
   /* ──────────────────────────────────────────
-     11. 输入：pointer 落墨 / 拖拽搅墨（touch 可玩）
+     11. 输入：pointer 落墨 / 拖拽搅墨（手笔随时加入同一宇宙，无模式切换）
      ────────────────────────────────────────── */
   var pointers = {};
   function toUV(clientX, clientY) {
@@ -821,17 +1027,15 @@
   function onDown(id, clientX, clientY) {
     var uv = toUV(clientX, clientY);
     pointers[id] = { x: uv.x, y: uv.y, down: true, moved: false };
-    // 点击即落墨（当前颜料），轻向下
     dropInk(uv.x, uv.y, currentPigment, { concentration: 0.85, force: config.SPLAT_FORCE, dy: -config.SPLAT_FORCE * 0.7, dx: 0 });
     inkBudget += 0.8;
-    wakeDock();
+    wakeChrome();
   }
   function onMove(id, clientX, clientY) {
-    wakeDock();
+    wakeChrome();
     var p = pointers[id];
     var uv = toUV(clientX, clientY);
     if (p && p.down) {
-      // 拖拽 = 以 pointer 速度搅墨
       var dx = (uv.x - p.x) * config.SPLAT_FORCE * 6.0;
       var dy = (uv.y - p.y) * config.SPLAT_FORCE * 6.0;
       splat(uv.x, uv.y, dx, dy, currentPigment, 0.18);
@@ -841,11 +1045,9 @@
   }
   function onUp(id) { if (pointers[id]) pointers[id].down = false; }
 
-  // mouse
   canvas.addEventListener('mousedown', function (e) { onDown('m', e.clientX, e.clientY); });
   window.addEventListener('mousemove', function (e) { onMove('m', e.clientX, e.clientY); });
   window.addEventListener('mouseup', function () { onUp('m'); });
-  // touch（仅 canvas 非 passive，让 preventDefault 生效搅墨；不影响页面其他滚动）
   canvas.addEventListener('touchstart', function (e) {
     e.preventDefault();
     for (var i = 0; i < e.changedTouches.length; i++) {
@@ -863,58 +1065,82 @@
   });
 
   /* ──────────────────────────────────────────
-     12. 工具条交互 + 4s 自动隐去
+     12. 文房 UI：瓷色碟 + 另起一卷 + 日/月双境 + chrome 闲置 5s 隐去
      ────────────────────────────────────────── */
-  var dockTimer = null;
-  function wakeDock() {
-    if (!dock) return;
-    dock.classList.remove('hidden');
-    if (dockTimer) clearTimeout(dockTimer);
-    dockTimer = setTimeout(function () {
-      if (dock.contains(document.activeElement)) return; // 键盘焦点在工具条内时不隐去
-      dock.classList.add('hidden');
-    }, 4000);
+  var chromeTimer = null;
+  function wakeChrome() {
+    document.body.classList.remove('chrome-idle');
+    if (chromeTimer) clearTimeout(chromeTimer);
+    chromeTimer = setTimeout(function () {
+      // 键盘焦点落在控件上时不隐去（避免 focus 落在 opacity:0 的隐形控件）
+      var ae = document.activeElement;
+      if (ae && (ae.closest('.palette') || ae.classList.contains('renew') || ae.classList.contains('realm-toggle'))) return;
+      document.body.classList.add('chrome-idle');
+    }, 5000);
   }
-  // 任何指针移动浮现
-  window.addEventListener('pointermove', wakeDock, { passive: true });
-  // 键盘 Tab 进入工具条时重新浮现（避免 focus 落在 opacity:0 的隐形控件）
-  if (dock) dock.addEventListener('focusin', wakeDock);
+  window.addEventListener('pointermove', wakeChrome, { passive: true });
+  [paletteEl, renewEl, realmToggleEl].forEach(function (el) {
+    if (el) el.addEventListener('focusin', wakeChrome);
+  });
 
-  function buildDock() {
-    if (!dock) return;
-    var sw = dock.querySelector('#swatches');
-    if (sw) {
-      PIGMENTS.forEach(function (pig, idx) {
-        var b = document.createElement('button');
-        b.className = 'swatch';
-        b.style.background = pig.hex;
-        b.setAttribute('aria-label', pig.name);
-        b.setAttribute('title', pig.name);
-        b.setAttribute('aria-pressed', idx === currentPigment ? 'true' : 'false');
-        b.addEventListener('click', function () {
-          currentPigment = idx;
-          sw.querySelectorAll('.swatch').forEach(function (el, i) {
-            el.setAttribute('aria-pressed', i === idx ? 'true' : 'false');
-          });
-          wakeDock();
-        });
-        sw.appendChild(b);
-      });
-    }
-    var autoBtn = dock.querySelector('#autoBtn');
-    if (autoBtn) {
-      autoBtn.setAttribute('aria-pressed', autoOn ? 'true' : 'false');
-      autoBtn.addEventListener('click', function () {
-        autoOn = !autoOn;
-        autoBtn.setAttribute('aria-pressed', autoOn ? 'true' : 'false');
-        if (autoOn) scheduleAuto();
-        wakeDock();
-      });
-    }
-    var washBtn = dock.querySelector('#washBtn');
-    if (washBtn) washBtn.addEventListener('click', function () { startWash(); wakeDock(); });
+  // 应用某颜料色到瓷碟 CSS（日 hex / 夜 glow），并设选中态
+  function applyDishVisual(btn, pig) {
+    btn.style.setProperty('--pig', pig.hex);
+    btn.style.setProperty('--glow', pig.glow);
   }
-  buildDock();
+  function refreshDishNames() {
+    if (!paletteEl) return;
+    var night = realm === 'night';
+    paletteEl.querySelectorAll('.dish').forEach(function (btn, i) {
+      var pig = PIGMENTS[i];
+      var nameEl = btn.querySelector('.dish-name');
+      if (nameEl) nameEl.textContent = night ? pig.nightName : pig.name;
+      btn.setAttribute('aria-label', (night ? pig.nightName : pig.name));
+      btn.setAttribute('title', (night ? pig.nightName : pig.name));
+    });
+  }
+
+  function buildPalette() {
+    if (!paletteEl) return;
+    PIGMENTS.forEach(function (pig, idx) {
+      var b = document.createElement('button');
+      b.className = 'dish';
+      b.setAttribute('aria-pressed', idx === currentPigment ? 'true' : 'false');
+      applyDishVisual(b, pig);
+      var nm = document.createElement('span');
+      nm.className = 'dish-name';
+      nm.textContent = pig.name;
+      b.appendChild(nm);
+      b.addEventListener('click', function () {
+        currentPigment = idx;
+        paletteEl.querySelectorAll('.dish').forEach(function (el, i) {
+          el.setAttribute('aria-pressed', i === idx ? 'true' : 'false');
+        });
+        wakeChrome();
+      });
+      paletteEl.appendChild(b);
+    });
+    refreshDishNames();
+  }
+  buildPalette();
+
+  // 另起一卷
+  if (renewEl) {
+    renewEl.addEventListener('click', function () { startWash(); wakeChrome(); });
+  }
+
+  // 日 / 月双境切换（UI 与 ?realm 同步）
+  function setRealm(next) {
+    realm = next;
+    document.documentElement.setAttribute('data-realm', realm);
+    refreshDishNames();
+    wakeChrome();
+  }
+  if (realmToggleEl) {
+    realmToggleEl.addEventListener('click', function () {
+      setRealm(realm === 'night' ? 'day' : 'night');
+    });
+  }
 
   /* ──────────────────────────────────────────
      13. 主循环（dt clamp / document.hidden 暂停）
@@ -931,10 +1157,19 @@
     if (!(dt > 0)) dt = 0.0166;       // NaN/0 防护
 
     updateWash(now);
+    ambientFlow(now, dt);             // 全场环流缓流（多色相遇洇染）
     step(dt);
-    render();
+    render(now);
     maybeAutoRenew(now, dt);
 
+    rafId = requestAnimationFrame(loop);
+  }
+
+  // 单一入口启动主循环：先取消任何在途 rAF，杜绝并发 loop 链叠加（双速/GPU 翻倍）
+  function startLoop() {
+    if (rafId) cancelAnimationFrame(rafId);
+    running = true;
+    lastTime = performance.now();
     rafId = requestAnimationFrame(loop);
   }
 
@@ -943,39 +1178,36 @@
       running = false;
       if (rafId) cancelAnimationFrame(rafId);
     } else {
-      running = true;
-      lastTime = performance.now();
-      rafId = requestAnimationFrame(loop);
+      startLoop();
     }
   });
 
   /* ── WebGL context loss/restore（移动端/集显 GPU reset、切后台回前台常见）──
      lost：停主循环，避免每帧对失效 GL 对象 step()/render() 静默刷爆 console。
-     restored：重建可恢复状态（FBO + 新卷）并恢复循环。
-     注：shader programs/buffer 在 IIFE 顶层一次性编译，真丢失后需整套重编译；
-     此处先保证不报错刷屏 + 尽力恢复 framebuffer 与运行，full recompile 留待后续重构。 */
+     restored：整套重编译 program + 重建 quad/FBO（rebuildGL），再开新卷恢复循环。
+     真丢失后 program/buffer 全部失效，必须 full recompile 才能真正恢复渲染。
+     若 rebuildGL 失败（极少数 GPU 重建失败），保持停机不刷屏，等用户刷新。 */
   canvas.addEventListener('webglcontextlost', function (e) {
     e.preventDefault();
     running = false;
     if (rafId) cancelAnimationFrame(rafId);
   }, false);
   canvas.addEventListener('webglcontextrestored', function () {
-    initFramebuffers();
+    if (!rebuildGL()) return;
     beginScroll();
-    running = true;
-    lastTime = performance.now();
-    rafId = requestAnimationFrame(loop);
+    startLoop();
   }, false);
 
-  // 启动：第一卷（道生一开场）
+  // 启动：第一卷
   beginScroll();
-  wakeDock();
+  wakeChrome();
   rafId = requestAnimationFrame(loop);
 
   // 对外极小接口（调试用，可无）
   window.__eastink = {
-    wash: startWash,
     newScroll: beginScroll,
-    setPigment: function (i) { currentPigment = i; }
+    renew: startWash,
+    setPigment: function (i) { currentPigment = i; },
+    setRealm: setRealm
   };
 })();

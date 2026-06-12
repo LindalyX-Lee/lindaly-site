@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-mode="day">
+<html lang="zh-CN" data-mode="day" data-realm="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- 上线拍板后移除 -->
 <meta name="robots" content="noindex">
-<title>東墨 EastInk · 道生一</title>
-<meta name="description" content="東墨 EastInk · 道生一，一生二，二生三，三生万物。真·流体水墨，墨落不可撤销，此卷不可复现。">
+<title>東墨 EastInk · 上善若水</title>
+<meta name="description" content="東墨 EastInk · 真·流体水墨。每一卷从新种子抽签开演，颜色、落点、流场皆不可复现；多色相遇、洇染、共同消融。日境宣纸 / 夜境深水，墨入夜化光。">
 <meta name="theme-color" content="#faf7f0">
 <link rel="stylesheet" href="./eastink.css">
 </head>
@@ -15,31 +15,51 @@
   <!-- 流体画布 -->
   <canvas id="stage" aria-label="水墨流体画布：点击落墨，拖拽搅墨"></canvas>
 
-  <!-- 左上竖排题字 -->
+  <!-- 左上竖排题字「東墨」 -->
   <div class="title" aria-hidden="true">
     <span class="title-main">東墨</span>
-    <span class="title-sub">EastInk · 道生一</span>
+    <span class="title-sub">EastInk</span>
     <span class="seal">墨</span>
   </div>
 
-  <!-- 演化标签（道生一 / 一生二 / 二生三 / 三生万物） -->
-  <div class="evolve-label" id="evolveLabel" aria-hidden="true"></div>
+  <!-- 右上：日 / 月 双境切换符 ☉ / ☾ -->
+  <button class="realm-toggle" id="realmToggle" aria-label="切换日境与夜境" title="日 / 月">
+    <span class="realm-sun" aria-hidden="true"></span>
+    <span class="realm-moon" aria-hidden="true"></span>
+  </button>
 
-  <!-- 右下角极小字：卷数 -->
-  <p class="scroll-meta" id="scrollMeta">此卷不可复现</p>
-
-  <!-- 底部居中悬浮工具条 -->
-  <div class="dock" id="dock" role="toolbar" aria-label="水墨工具">
-    <div class="swatches" id="swatches"></div>
-    <span class="dock-sep" aria-hidden="true"></span>
-    <button class="dock-btn" id="autoBtn" aria-pressed="true">自动演墨</button>
-    <button class="dock-btn" id="washBtn">涤净</button>
+  <!-- 东西相照题跋：东句竖排大字 + 西句横排小字斜体（开卷浮现，淡出后缩入题跋区） -->
+  <div class="couplet" id="couplet" aria-hidden="true">
+    <span class="couplet-east" id="coupletEast"></span>
+    <span class="couplet-west" id="coupletWest"></span>
   </div>
+
+  <!-- 右下题跋区：卷号 · 不可复现 + 拍序小注（道生一 …）+ 缩入后的题跋 -->
+  <div class="colophon" id="colophon" aria-hidden="true">
+    <span class="colophon-note" id="colophonNote"></span>
+    <span class="colophon-tip" id="colophonTip"></span>
+    <span class="colophon-meta" id="scrollMeta">第 一 卷 · 不可复现</span>
+  </div>
+
+  <!-- 五只瓷色碟（桌面右缘竖列 / 移动端底部横排） -->
+  <div class="palette" id="palette" role="toolbar" aria-label="瓷色碟"></div>
+
+  <!-- 另起一卷（竖排毛笔字按钮，替代旧「涤净」） -->
+  <button class="renew" id="renewBtn" aria-label="另起一卷">
+    <span class="renew-char">另</span>
+    <span class="renew-char">起</span>
+    <span class="renew-char">一</span>
+    <span class="renew-char">卷</span>
+  </button>
 
   <!-- 无 WebGL / reduced-motion 静态海报回退 -->
   <div class="poster" id="poster" hidden>
     <span class="poster-title">東墨</span>
-    <p class="poster-note">你的浏览器未开启 WebGL，无法演示流体水墨。<br>道生一，一生二，二生三，三生万物。</p>
+    <div class="poster-couplet" aria-hidden="true">
+      <span class="poster-east">上善若水</span>
+      <span class="poster-west">Panta rhei — 万物皆流</span>
+    </div>
+    <p class="poster-note">道生一，一生二，二生三，三生万物。</p>
   </div>
 
   <script src="./eastink.js"></script>
