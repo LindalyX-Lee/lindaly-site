@@ -39,10 +39,26 @@
   } catch (e) {}
   document.documentElement.setAttribute('data-realm', realm);
 
-  /* ── reduced-motion：不跑模拟，静态海报 + 一对题跋静态展示 ── */
+  // F4 宣纸纹理（帘纹 laid lines + 稀疏纤维絮斑）：只作用于「无墨留白」（× paperGate，
+  // paperGate 在 main() 里由墨量 dC 算出），墨上不叠纹——墨是主角，纸纹不抢戏，
+  // 也避免把墨的饱和度冲淡（实测纸纹满铺会灰化墨色）。
+  var PAPER_FX = [
+    '',
+    '    float wave = vnoise(uv * vec2(2.2, 1.0) * 3.0) * 0.5;',
+    '    float laid = sin((uv.y + wave * 0.012) * 520.0);',
+    '    paper -= laid * 0.006 * paperGate;',              // 帘纹 laid lines（仅留白）
+    '    float speck = fbm(uv * vec2(aspectRatio * 22.0, 150.0));',
+    '    speck = smoothstep(0.62, 0.92, speck);',
+    '    paper -= speck * 0.020 * paperGate;',             // 稀疏纤维絮斑（仅留白）
+    ''
+  ].join('\n');
+
+  /* ── reduced-motion：不跑模拟，静态海报 + 一对题跋静态展示 ──
+     F2：跳过字入墨；DOM 静态展示题跋对（海报已含一对东西句）。 */
   if (reduced) {
     canvas.style.display = 'none';
-    [paletteEl, renewEl, realmToggleEl].forEach(function (el) { if (el) el.style.display = 'none'; });
+    [paletteEl, renewEl, realmToggleEl, document.getElementById('lingBtn')]
+      .forEach(function (el) { if (el) el.style.display = 'none'; });
     if (poster) poster.hidden = false;
     return;
   }
@@ -156,12 +172,12 @@
   var DYE_RES = isMobile ? 480 : 720;
   var RENDER_SCALE = isMobile ? 0.6 : 0.85;
   var config = {
-    DENSITY_DISSIPATION: 0.34,   // 墨耗散：~60–90s 归近白
+    DENSITY_DISSIPATION: 0.31,   // 墨耗散：~70–95s 归近白（略缓于 0.34，墨更耐看不易沉空）
     VELOCITY_DISSIPATION: 0.2,
     PRESSURE: 0.8,
     PRESSURE_ITERATIONS: isMobile ? 16 : 30,
     CURL: 5,                      // 漩涡降档：12→5，别把墨撕成丝/掏空成铬环
-    DYE_DIFFUSE: 0.30,           // 墨晕轻扩散权重（0=纯平流硬边丝带）
+    DYE_DIFFUSE: 0.15,           // 墨晕轻扩散权重（0.30→0.15：保守模糊更轻，峰值浓度留得住——薄墨也读得出本色，不糊成隐形薄膜）
     SPLAT_RADIUS: 0.22,          // 落墨即带柔边：0.15→0.22
     SPLAT_FORCE: 2600            // 羽流保留但降幅：3500→2600，别把墨喷成丝
   };
@@ -246,6 +262,29 @@
     '  vec3 splat = exp(-dot(p, p) / radius) * color;',
     '  vec3 base = texture2D(uTarget, vUv).xyz;',
     '  gl_FragColor = vec4(base + splat, 1.0);',
+    '}'
+  ].join('\n');
+
+  /* ── F2 字入墨：把东句文字形状注入 dye 场 ──
+     uText.r = 离屏 canvas 笔画 alpha（已 FLIP_Y 对齐 UV）。
+     注入玄墨 K 签名 → 昼显墨黑、夜经 display 的玄墨判定自动化月白（无需额外逻辑）。
+     微噪声抖动笔画边缘 → 洇墨感；不注入速度（静字，让环流去冲散）。 */
+  var TEXT_SPLAT_FRAG = HEADER_F + [
+    'varying vec2 vUv;',
+    'uniform sampler2D uTarget;',   // 当前 dye
+    'uniform sampler2D uText;',     // 文字 alpha 图
+    'uniform vec3 inkK;',           // 玄墨 K
+    'uniform float amount;',        // 本帧注入权重（分帧叠加）
+    'uniform float seed;',          // 每帧换种子，让洇墨抖动不同
+    'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
+    'void main(){',
+    '  float a = texture2D(uText, vUv).r;',
+    // 笔画边缘洇墨：在中等 alpha 处加噪声抖动（实心内部不抖，背景不抖）
+    '  float edge = a * (1.0 - a) * 4.0;',                 // 0..1，峰在 a=0.5
+    '  float n = hash(vUv * 520.0 + seed) - 0.5;',
+    '  a = clamp(a + n * edge * 0.5, 0.0, 1.0);',
+    '  vec3 base = texture2D(uTarget, vUv).xyz;',
+    '  gl_FragColor = vec4(base + inkK * (a * amount), 1.0);',
     '}'
   ].join('\n');
 
@@ -398,6 +437,8 @@
     'uniform float washX;',        // 水幕扫过的横向位置
     'uniform float realm;',        // 0=日·宣纸  1=夜·深水
     'uniform float time;',         // 夜境深度噪声微动
+    'uniform sampler2D uVelocity;',// F4 夜星河：星随墨流漂
+    'uniform vec2 texelSizeV;',    // 速度纹理 texel（manual bilerp 用）
     // 程序化纤维噪声
     'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
     'float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1.0,0.0)),c=hash(i+vec2(0.0,1.0)),d=hash(i+vec2(1.0,1.0));vec2 u=f*f*(3.0-2.0*f);return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}',
@@ -407,6 +448,13 @@
     '  return bilerp(uDye, uv, dyeTexelSize).rgb;',
     '#else',
     '  return texture2D(uDye, uv).rgb;',
+    '#endif',
+    '}',
+    'vec2 sampleVelD(vec2 uv){',           // F4 星河用：两路安全采样
+    '#ifdef MANUAL',
+    '  return bilerp(uVelocity, uv, texelSizeV).xy;',
+    '#else',
+    '  return texture2D(uVelocity, uv).xy;',
     '#endif',
     '}',
     'void main(){',
@@ -432,12 +480,15 @@
     '  absK = max(absK, 0.0);',
     '  vec3 col;',
     '  if (realm < 0.5) {',
-    // ── 日·宣纸：暖白 + fbm 纤维 + vignette 留白，逐通道吸收 ──
+    // ── 日·宣纸：暖白 + fbm 纤维 + 帘纹 + 絮斑 + 毛边 vignette，逐通道吸收 ──
+    // （F4 克制：纸纹幅度都压在 ~0.012–0.02，墨永远是主角）
     '    vec3 paper = vec3(0.980, 0.969, 0.941);',
     '    float fiber = fbm(uv * vec2(aspectRatio, 1.0) * 380.0);',
     '    float blotch = fbm(uv * vec2(aspectRatio, 1.0) * 6.0);',
     '    paper -= (fiber - 0.5) * 0.018;',
     '    paper -= (blotch - 0.5) * 0.012;',
+    '    float paperGate = 1.0 - smoothstep(0.02, 0.30, dC);',  // 1=留白 0=墨上（纸纹不上墨）
+    PAPER_FX +
     '    float vig = smoothstep(1.35, 0.35, length((uv - 0.5) * vec2(1.0, 1.08)));',
     '    paper = mix(paper * 0.985, paper, 0.5 + 0.5 * vig);',
     '    col = paper * exp(-absK);',     // color = paper * exp(-K·dye)
@@ -464,13 +515,29 @@
     '    vec3 moonGlow = vec3(0.86, 0.91, 1.0);',       // 月白：冷白
     '    vec3 glowCol = mix(chromaGlow, moonGlow, moonW);',
     '    vec3 emissive = glowCol * amt * 1.15;',         // 加色发光，不挂 bloom 管线
-    '    col = deep + emissive;',
+    // ── F4 夜·星河：程序化疏星，采样坐标被 velocity 偏移（星随涡漂）──
+    // 缓而贵：星稀、动得慢、墨浓处星减淡（墨吞星光）。
+    '    vec2 vel = sampleVelD(uv);',
+    '    vec2 starUv = uv * vec2(aspectRatio, 1.0) * 2.0 + vel * 0.06;',  // 涡漂偏移
+    '    vec2 cell = floor(starUv * 8.0);',
+    '    float starSeed = hash(cell);',
+    '    vec3 stars = vec3(0.0);',
+    '    if (starSeed > 0.93) {',                          // 仅 ~7% 格子有星（疏）
+    '      vec2 fpos = fract(starUv * 8.0) - 0.5;',
+    '      float d = length(fpos);',
+    '      float tw = 0.6 + 0.4 * sin(time * 0.7 + starSeed * 40.0);', // 轻微闪烁
+    '      float s = smoothstep(0.18, 0.0, d) * tw;',
+    '      float dim = 1.0 - smoothstep(0.05, 0.4, dC);',  // 墨浓处星减淡
+    '      stars = vec3(0.62, 0.70, 0.85) * s * 0.5 * dim;',
+    '    }',
+    '    col = deep + emissive + stars;',
     '  }',
     '  gl_FragColor = vec4(col, 1.0);',
     '}'
   ].join('\n');
 
   var splatPrg = program(BASE_VERT, SPLAT_FRAG);
+  var textSplatPrg = program(BASE_VERT, TEXT_SPLAT_FRAG);
   var advectPrg = program(BASE_VERT, ADVECT_FRAG);
   var divergencePrg = program(BASE_VERT, DIVERGENCE_FRAG);
   var curlPrg = program(BASE_VERT, CURL_FRAG);
@@ -479,7 +546,7 @@
   var clearPrg = program(BASE_VERT, CLEAR_FRAG);
   var gradientPrg = program(BASE_VERT, GRADIENT_FRAG);
   var displayPrg = program(BASE_VERT, DISPLAY_FRAG);
-  if (!splatPrg || !advectPrg || !divergencePrg || !curlPrg || !vorticityPrg ||
+  if (!splatPrg || !textSplatPrg || !advectPrg || !divergencePrg || !curlPrg || !vorticityPrg ||
       !pressurePrg || !clearPrg || !gradientPrg || !displayPrg) { bail(); return; }
 
   /* ── 全屏三角形 ── */
@@ -559,6 +626,7 @@
   // context 真丢失后 program/buffer 全部失效：整套重编译 + 重建 quad + 重建 FBO
   function rebuildGL() {
     splatPrg = program(BASE_VERT, SPLAT_FRAG);
+    textSplatPrg = program(BASE_VERT, TEXT_SPLAT_FRAG);
     advectPrg = program(BASE_VERT, ADVECT_FRAG);
     divergencePrg = program(BASE_VERT, DIVERGENCE_FRAG);
     curlPrg = program(BASE_VERT, CURL_FRAG);
@@ -567,7 +635,7 @@
     clearPrg = program(BASE_VERT, CLEAR_FRAG);
     gradientPrg = program(BASE_VERT, GRADIENT_FRAG);
     displayPrg = program(BASE_VERT, DISPLAY_FRAG);
-    if (!splatPrg || !advectPrg || !divergencePrg || !curlPrg || !vorticityPrg ||
+    if (!splatPrg || !textSplatPrg || !advectPrg || !divergencePrg || !curlPrg || !vorticityPrg ||
         !pressurePrg || !clearPrg || !gradientPrg || !displayPrg) { return false; }
     quad = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
@@ -700,12 +768,16 @@
     gl.uniform1f(advectPrg.uniforms.diffuse, 0.0);   // 速度场不扩散，保持流动锐利
     blit(velocity.write); velocity.swap();
     // advect dye（涤净时耗散加速 + 轻扩散晕染）
+    // F2 字墨呼吸期：完全冻结 dye（不平流不扩散）→ 笔画像素级清晰、不被半拉格朗日数值扩散抹糊；
+    //    呼吸结束解冻，字随恢复的水流自然冲散消融。
+    if (freezeDye) return;                                        // 呼吸期：dye 静止不动（字稳住）
     var dyeDiss = config.DENSITY_DISSIPATION + washing * 2.2;
+    var dyeDiff = config.DYE_DIFFUSE;
     gl.uniform1i(advectPrg.uniforms.uVelocity, velocity.read.attach(0));
     gl.uniform1i(advectPrg.uniforms.uSource, dye.read.attach(1));
     gl.uniform2f(advectPrg.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
     gl.uniform1f(advectPrg.uniforms.dissipation, dyeDiss);
-    gl.uniform1f(advectPrg.uniforms.diffuse, config.DYE_DIFFUSE);  // 墨晕扩散
+    gl.uniform1f(advectPrg.uniforms.diffuse, dyeDiff);
     blit(dye.write); dye.swap();
   }
 
@@ -719,6 +791,8 @@
     gl.uniform1f(displayPrg.uniforms.washX, washX);
     gl.uniform1f(displayPrg.uniforms.realm, realm === 'night' ? 1.0 : 0.0);
     gl.uniform1f(displayPrg.uniforms.time, (now || 0) * 0.001);
+    gl.uniform1i(displayPrg.uniforms.uVelocity, velocity.read.attach(1));   // F4 星河漂移
+    gl.uniform2f(displayPrg.uniforms.texelSizeV, velocity.texelSizeX, velocity.texelSizeY);
     blit(null);
   }
 
@@ -750,6 +824,100 @@
     gl.uniform3f(splatPrg.uniforms.color, dx, dy, 0.0);
     gl.uniform1f(splatPrg.uniforms.radius, correctRadius((config.SPLAT_RADIUS * (radiusScale || 1)) / 100.0));
     blit(velocity.write); velocity.swap();
+  }
+
+  /* ──────────────────────────────────────────
+     9b. F2 字入墨：离屏 canvas 写东句 → alpha 上传 → text-splat 注入 dye
+        东句不再浮在上面，而是「写进流体的墨」，被环流冲散消融。
+     ────────────────────────────────────────── */
+  var brushReady = false;             // FontFace 加载完成（或超时走系统栈）
+  var textCanvas = document.createElement('canvas');
+  var textCtx = textCanvas.getContext('2d');
+  var textTex = null;                 // 文字 alpha 上传的纹理（每次重画重传）
+
+  // 把一句东句竖排画进离屏 canvas（逐字下排，毛笔字），返回是否成功
+  function renderTextToCanvas(text) {
+    if (!textCtx) return false;
+    // 文字图分辨率对齐 dye（够清晰又不浪费）；竖排居中
+    var W = dye.width, H = dye.height;
+    textCanvas.width = W; textCanvas.height = H;
+    textCtx.clearRect(0, 0, W, H);
+    var chars = text.split('');
+    // 字号随视口自适应（移动端缩小）：以画布高定基准，按字数不溢出收敛
+    var base = isMobile ? 0.078 : 0.092;             // 占画布高比例（略收，留笔画间隙）
+    var fs = H * base;
+    var gap = fs * 1.26;                              // 行距（竖排逐字下移；加大避免竖向粘连）
+    var totalH = gap * chars.length;
+    var maxH = H * (isMobile ? 0.80 : 0.74);
+    if (totalH > maxH) { var k = maxH / totalH; fs *= k; gap *= k; totalH = maxH; }
+    // canvas 不解析 CSS 变量，给具体栈：自托管毛笔体首位 + 系统楷/行楷兜底
+    var fam = '"MSZ Brush", "Xingkai SC", "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif';
+    // 画白字：上传后纹理 .r = 笔画覆盖度（抗锯齿边缘自带渐变），shader 读 .r 即字形
+    textCtx.fillStyle = '#fff';
+    textCtx.textAlign = 'center';
+    textCtx.textBaseline = 'middle';
+    textCtx.font = '500 ' + fs + 'px ' + fam + ', serif';
+    var cx = W * 0.5;
+    var y0 = (H - totalH) * 0.5 + gap * 0.5;
+    for (var i = 0; i < chars.length; i++) {
+      textCtx.fillText(chars[i], cx, y0 + gap * i);
+    }
+    return true;
+  }
+
+  // 上传当前 textCanvas 的 alpha 到纹理（R 通道 = alpha；FLIP_Y 对齐 GL UV）
+  function uploadTextTex() {
+    if (!textTex) textTex = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, textTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);     // 2D canvas 顶向下 → 翻成 GL UV
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);    // 复位，别污染后续上传
+  }
+
+  // 一帧注入：把文字 alpha×amount 的玄墨 K 加进 dye（分帧叠加，叠出厚度）
+  function textSplatFrame(amount, seedV) {
+    if (!textTex) return;
+    var inkPig = PIGMENTS[0];          // 玄墨：昼墨黑 / 夜自动月白
+    bindQuad(textSplatPrg);
+    gl.uniform1i(textSplatPrg.uniforms.uTarget, dye.read.attach(0));
+    gl.uniform1i(textSplatPrg.uniforms.uText, (gl.activeTexture(gl.TEXTURE1), gl.bindTexture(gl.TEXTURE_2D, textTex), 1));
+    gl.uniform3f(textSplatPrg.uniforms.inkK, inkPig.K[0], inkPig.K[1], inkPig.K[2]);
+    gl.uniform1f(textSplatPrg.uniforms.amount, amount);
+    gl.uniform1f(textSplatPrg.uniforms.seed, seedV);
+    blit(dye.write); dye.swap();
+  }
+
+  // 编排一次「字入墨」：渲染 → 上传 → 2-3 帧叠加注入。返回是否真注入了。
+  var injecting = false;              // 入墨动画进行中（节流点击重注）
+  function injectEastText(text) {
+    if (!text) return false;
+    if (!renderTextToCanvas(text)) return false;
+    uploadTextTex();
+    injecting = true;                                 // 节流：动画进行中点击题跋无效
+    var frames = isMobile ? 2 : 3;                    // 分帧叠加：洇墨厚度
+    var conc = 1.0;                                   // 字墨浓（清晰可读）
+    for (var f = 0; f < frames; f++) {
+      textSplatFrame(conc / frames * 1.15, rand() * 1000);   // 不过饱和，保笔画开口
+    }
+    inkBudget += conc * 1.6;                          // 字也算墨预算，别被近空白网误判
+    setTimeout(function () { injecting = false; }, 900);
+    return true;
+  }
+
+  // F2 题跋点击 → 该句重新入墨一次（节流：入墨动画进行中无效）
+  function reinjectCouplet() {
+    if (injecting || !currentCouplet || introActive || washing > 0) return;
+    flowDamp = 0; freezeDye = true;                   // 重注时冻结，字清晰再被冲散
+    injectEastText(currentCouplet.e);
+    onAudio('bell');
+    setTimeout(function () { freezeDye = false; }, 2400);
+    rampFlowDamp(2400, 1200);                         // 看清后缓缓恢复环流冲散
   }
 
   /* ──────────────────────────────────────────
@@ -819,20 +987,25 @@
   function clearCouplets() { coupletTimers.forEach(clearTimeout); coupletTimers = []; }
   function laterC(fn, ms) { coupletTimers.push(setTimeout(fn, ms)); }
 
-  function showCouplet(pair) {
+  /* F2 后：东句已是「入墨的字」（流体里的墨），不再浮 DOM 大字。
+     这里只管西文句 DOM 横排小字（Baskerville Italic），在字墨呼吸期淡入、冲散期淡出；
+     并在淡出后把东西对写进右下题跋存档区。
+     fadeInAt / holdMs 由开场编排传入，与字入墨呼吸窗对齐。 */
+  var currentCouplet = null;          // 供题跋点击重注用
+  function showCouplet(pair, fadeInAt, holdMs) {
+    currentCouplet = pair;
     if (!coupletEl || !coupletEastEl || !coupletWestEl) return;
-    coupletEastEl.textContent = pair.e;
+    coupletEastEl.textContent = '';                  // 东句不再 DOM 大字（已入墨）
     coupletWestEl.textContent = pair.w;
     coupletEl.classList.remove('fade');
-    // 0.5s 淡入
-    laterC(function () { coupletEl.classList.add('show'); }, 60);
-    // 6s 内淡出
-    laterC(function () { coupletEl.classList.remove('show'); coupletEl.classList.add('fade'); }, 6000);
-    // 淡出后缩入右下题跋区与卷号共存
+    fadeInAt = fadeInAt || 60;
+    holdMs = holdMs || 3000;
+    laterC(function () { coupletEl.classList.add('show'); }, fadeInAt);              // 呼吸期淡入
+    laterC(function () { coupletEl.classList.remove('show'); coupletEl.classList.add('fade'); }, fadeInAt + holdMs);  // 冲散期淡出
     laterC(function () {
       coupletEl.classList.remove('fade');
       if (colophonNoteEl) { colophonNoteEl.textContent = pair.note; colophonNoteEl.classList.add('show'); }
-    }, 7600);
+    }, fadeInAt + holdMs + 1400);
   }
 
   var introTimers = [];
@@ -847,9 +1020,34 @@
   // 环流性格三选一：每卷一个 curl-noise 缓流场，让多色相遇、洇染、共同消融
   // kind: 0 微风(定向缓漂) / 1 回漩(全场慢涡) / 2 对流(双胞环流)
   var flow = { kind: 0, dir: 0, strength: 1, t: 0 };
+  // F2 环流阻尼：字墨呼吸期压到近零（墨字清晰可读），呼吸后恢复到 1（水流冲散）
+  var flowDamp = 1;
+  var freezeDye = false;          // 呼吸期 dye 静止（字像素级清晰，免数值扩散）
+  var dampRampTimers = [];
+  function rampFlowDamp(startMs, durMs) {
+    dampRampTimers.forEach(clearTimeout); dampRampTimers = [];
+    var steps = 12;
+    for (var s = 0; s <= steps; s++) {
+      (function (k) {
+        dampRampTimers.push(setTimeout(function () {
+          var p = k / steps;
+          flowDamp = p * p * (3 - 2 * p);                         // smoothstep 0→1
+        }, startMs + durMs * (k / steps)));
+      })(s);
+    }
+  }
+  // F4 铺卷：CSS mask 横扫进度（0..1），>0 时 canvas 被左→右软边揭开
+  var unrollStart = 0;
+  var UNROLL_MS = 1600;
   function rollFlowPersona() {
     flow.kind = Math.floor(rand() * 3);
     flow.dir = rand() * Math.PI * 2;
+    // 微风(kind 0)：把方向偏到「近水平」——避免一卷的墨被整体吹出上/下边框（沉底=空场帧）。
+    // 回漩/对流(kind 1/2) 的 dir 只决定旋向，不受此影响。
+    if (flow.kind === 0) {
+      var horiz = rand() < 0.5 ? 0 : Math.PI;            // 向左 or 向右
+      flow.dir = horiz + (rand() - 0.5) * (50 * Math.PI / 180);  // ±25° 内的近水平
+    }
     flow.strength = rng(0.8, 1.25);
     flow.t = rand() * 1000;
   }
@@ -863,22 +1061,49 @@
     inkBudget = 0;
     nearBlankSince = 0;
     introActive = true;
+    freezeDye = false;                       // 新卷起始不冻结（铺卷期空场）
+    blobs.length = 0;                        // F1 活墨团登记清空
     clearIntro();
     clearCouplets();
     clearTimeout(tipTimer);                  // 清旧卷残留的隐藏 timer，避免到点吞掉新卷刚浮现的拍序小注
     rollFlowPersona();
 
-    // 东西相照题跋：开卷浮现一对
-    showCouplet(drawCouplet());
+    // ── F4 铺卷：纸从左向右铺展 ~1.6s，墨/字都等铺完再来 ──
+    unrollStart = performance.now();
+
+    // 本卷题跋对（东句即将入墨）
+    var pair = drawCouplet();
+
+    // ── F2 开场编排时间轴（接在铺卷之后）──
+    // 字墨清晰窗 ≈ [tInk, tBreatheEnd]，覆盖 t≈1.8s–6.6s（含 day-t06 证据帧）。
+    var UNROLL = UNROLL_MS;                            // 0     铺卷 ~1.6s
+    var BREATHE_HOLD = 4800;                           // 呼吸：环流+扩散阻尼近零，墨字清晰可读
+    var tInk = UNROLL;                                 // 铺完即入墨
+    var tBreatheEnd = tInk + BREATHE_HOLD;             // 呼吸结束 → 环流恢复、字被冲散
+    var tDao = tBreatheEnd + 400;                      // 道生一第一拍接上
+
+    // 铺卷期 + 呼吸期：环流完全冻结（字清晰可读、不被残余速度抹糊）
+    flowDamp = 0;
+    // 西文句 DOM 横排小字：呼吸期淡入、冲散期淡出（与字墨同步）
+    showCouplet(pair, tInk + 120, BREATHE_HOLD - 200);
+
+    // 字入墨：铺卷完成后注入（玄墨 K → 昼墨黑 / 夜月白），分帧叠加；随即冻结 dye（字清晰）
+    later(function () {
+      freezeDye = true;
+      injectEastText(pair.e);
+      onAudio('bell');                                 // F5 一声磬（字入墨）
+    }, tInk);
+    // 呼吸将尽：解冻 dye + 环流在 ~1.2s 内缓缓恢复（字被水流慢慢冲散消融，不硬跳）
+    later(function () { freezeDye = false; }, tBreatheEnd);
+    rampFlowDamp(tBreatheEnd, 1200);
 
     // 三拍开场保持「一→二→三」哲学骨架，但每拍参数全随机（随机感+宿命感）
     var pigs = pick3Pigments();                       // 5 选 3 不重复有序：主墨不固定
     var tips = ['道生一', '一生二', '二生三'];
     // 落点：上沿 / 左右上沿随机段；羽流向量：垂直 ±35°、力度 0.7–1.4×；拍间隔随机
-    var t = 0;
+    var t = tDao;                                      // 第一拍从「呼吸后」起算
     [0, 1, 2].forEach(function (b) {
-      var interval = b === 0 ? rng(1000, 2000) : rng(3000, 6000);
-      t += interval;
+      if (b > 0) t += rng(2200, 3800);                // 二三拍间隔随机（收紧，墨早点铺开）
       var when = t;
       var pig = pigs[b];
       // 落点横向分段：第一拍中上区，二三拍偏左 / 偏右上沿
@@ -891,39 +1116,93 @@
       var conc = b === 0 ? rng(0.9, 1.05) : rng(0.78, 0.95);
       later(function () {
         dropInk(x, y, pig, { concentration: conc, force: f, dx: dxV, dy: dyV });
+        registerBlob(x, y, pig, conc);                 // F1 登记活墨团
+        onAudio('drop', { x: x, r: conc });            // F5 水滴
         inkBudget += conc;
         showTip(tips[b], 2600);
       }, when);
     });
-    // 「三生万物」后：环流性格接管 + 自动续墨节奏
+    // 「三生万物」后：环流性格接管 + 自动续墨节奏（尽快接管，撞色早点登场）
     later(function () {
       showTip('三生万物', 3200);
       introActive = false;
+      autoDrop();                                     // 立即先来一滴，别让场荒着
       scheduleAuto();
-    }, t + rng(3000, 5000));
+    }, t + rng(1500, 2500));
   }
 
   // 自动续墨：每 5–12s 一次轻柔随机落墨，滴径有方差（生生不息，永远是活的）
+  /* ── F1 撞色编排：活墨团登记 + 瞄准边缘落异色 + 双滴连珠 ──
+     维护最近落墨（位置/半径/颜料/age≤12s）；自动调度 ~45% 概率改为瞄准某活墨团
+     边缘落异色滴，制造「绿还在晕染、蓝已入怀」的相撞。手动落墨不登记不受影响。 */
+  var blobs = [];                                       // {x,y,r,pig,born}
+  var BLOB_TTL = 12000;
+  var lastAutoPig = -1;                                  // 上一滴自动续墨的色：散墨连珠避免同色，画面常多色并存
+  function registerBlob(x, y, pig, conc, radiusScale) {
+    blobs.push({ x: x, y: y, r: (config.SPLAT_RADIUS / 100) * (radiusScale || 1) * (0.8 + conc * 0.5), pig: pig, born: performance.now() });
+    if (blobs.length > 24) blobs.shift();               // 软上限
+  }
+  function liveBlobs(now) {
+    var out = [];
+    for (var i = 0; i < blobs.length; i++) {
+      if (now - blobs[i].born <= BLOB_TTL) out.push(blobs[i]);
+    }
+    blobs = out;
+    return out;
+  }
+
+  // 一次自动落墨（撞色逻辑）：~45% 瞄活墨团边缘落异色；其余随机散落
+  function autoDrop() {
+    if (introActive || washing > 0 || document.visibilityState !== 'visible') return;
+    var now = performance.now();
+    var live = liveBlobs(now);
+    var x, y, pig, conc, f, rs;
+    conc = rng(0.5, 0.92);                              // 续墨浓度（v0.2 验证值）
+    f = config.SPLAT_FORCE * rng(0.5, 1.05);
+    rs = rng(0.7, 1.5);
+    if (live.length > 0 && rand() < 0.32) {
+      // 瞄准某活墨团边缘落异色滴（落点 = 团心 + 团半径×随机方向偏移）
+      // 注：比例克制——撞色是「点睛」不是主旋律，过频会把各色相撞成灰
+      var b = live[Math.floor(rand() * live.length)];
+      var dir = rand() * Math.PI * 2;
+      var off = b.r * rng(0.85, 1.35);                  // 落在边缘一带
+      var aspect = canvas.width / canvas.height;
+      x = b.x + Math.cos(dir) * off / Math.max(aspect, 1);
+      y = b.y + Math.sin(dir) * off;
+      x = Math.min(0.9, Math.max(0.1, x));
+      y = Math.min(0.86, Math.max(0.16, y));
+      // 异色：从其它「矿物色」里抽（撞色，不撞同色；玄墨留给字入墨，续墨只上彩色不灰场）
+      do { pig = 1 + Math.floor(rand() * (PIGMENTS.length - 1)); } while (pig === b.pig && PIGMENTS.length > 2);
+      conc = rng(0.6, 0.95);
+    } else {
+      x = rng(0.16, 0.84);
+      y = rng(0.28, 0.82);
+      // 续墨抽矿物色 1–4（不抽玄墨(0)，避免黑墨灰场）；且避开上一滴的色——连着的散墨不同色，画面常有多色并存
+      do { pig = 1 + Math.floor(rand() * (PIGMENTS.length - 1)); } while (pig === lastAutoPig && PIGMENTS.length > 2);
+    }
+    lastAutoPig = pig;
+    var ang = rand() * Math.PI * 2;
+    dropInk(x, y, pig, {
+      concentration: conc,
+      force: f,
+      dx: Math.cos(ang) * f * 0.5,
+      dy: -Math.abs(Math.sin(ang)) * f * 0.8 - f * 0.12,   // 减弱恒定下沉，墨不那么快沉底
+      radiusScale: rs
+    });
+    registerBlob(x, y, pig, conc, rs);
+    onAudio('drop', { x: x, r: conc * (rs * 0.6 + 0.4) });
+    inkBudget += conc;
+  }
+
   function scheduleAuto() {
     if (autoTimer) clearTimeout(autoTimer);
-    var delay = rng(5000, 12000);
+    var delay = rng(3500, 6000);                        // 续墨节奏（再略密：保证 t40+ 窗口常有新鲜浓墨在场，不沉空）
     autoTimer = setTimeout(function () {
-      if (!introActive && washing === 0 && document.visibilityState === 'visible') {
-        var x = rng(0.16, 0.84);
-        var y = rng(0.28, 0.82);
-        var pig = Math.floor(rand() * PIGMENTS.length);
-        var conc = rng(0.5, 0.92);
-        var ang = rand() * Math.PI * 2;
-        var f = config.SPLAT_FORCE * rng(0.5, 1.05);
-        // 落点带轻向下羽流 + 滴径方差（生生不息，永远是活的）
-        dropInk(x, y, pig, {
-          concentration: conc,
-          force: f,
-          dx: Math.cos(ang) * f * 0.5,
-          dy: -Math.abs(Math.sin(ang)) * f - f * 0.3,
-          radiusScale: rng(0.7, 1.5)
-        });
-        inkBudget += conc;
+      autoDrop();
+      // 偶发「双滴连珠」：同邻域 0.5–1.2s 内再落一滴异色（撞色加戏）
+      if (!introActive && washing === 0 && rand() < 0.22) {
+        var lag = rng(500, 1200);
+        later(function () { autoDrop(); }, lag);
       }
       scheduleAuto();
     }, delay);
@@ -943,7 +1222,8 @@
     // 约每 0.16s 注入一轮（缓），避免每帧灌入把场打硬
     if (flowAccum < 0.16) return;
     flowAccum = 0;
-    var base = 26 * flow.strength;                       // 缓流基础力度（远低于落墨 SPLAT_FORCE）
+    if (flowDamp < 0.02) return;                         // F2 呼吸期：环流阻尼近零，墨字静止可读
+    var base = 22 * flow.strength * flowDamp;            // 缓流基础力度（26→22：略柔但保留漩涡聚墨力——swirl 把墨拢成浓团才鲜活，过柔反而散成薄雾；相遇/洇染仍在）
     var phase = flow.t * 0.05;
     var n = 5;                                            // 每轮少量点，疏密随机
     for (var k = 0; k < n; k++) {
@@ -982,6 +1262,9 @@
     washing = 0.001;                 // 同帧连点防护：立即占位，下一帧 updateWash 即按 washStart 重算
     washStart = performance.now();
     washX = -0.1;
+    dampRampTimers.forEach(clearTimeout); dampRampTimers = [];   // 清字墨阻尼 ramp
+    flowDamp = 1; freezeDye = false; // 洗卷期全力环流冲散
+    onAudio('wash');                 // F5 水幕白噪 L→R 扫
     if (colophonNoteEl) colophonNoteEl.classList.remove('show');
     if (coupletEl) coupletEl.classList.remove('show');
   }
@@ -1004,13 +1287,34 @@
     }
   }
 
+  /* ── F4 铺卷：canvas 上 CSS mask 软边横扫（左→右），墨/字等铺完再来 ──
+     不进 shader：直接驱动 canvas.style 的 mask-image 线性渐变揭开。 */
+  function setUnrollMask(frac) {
+    // frac: 已揭开比例 0..1；软边 ~10% 宽
+    if (frac >= 1) { canvas.style.webkitMaskImage = ''; canvas.style.maskImage = ''; return; }
+    var hard = Math.max(0, frac * 112 - 6);             // 全不透明边界(%)
+    var soft = frac * 112 + 6;                          // 渐隐到透明(%)
+    var grad = 'linear-gradient(to right, #000 ' + hard.toFixed(1) + '%, rgba(0,0,0,0) ' + soft.toFixed(1) + '%)';
+    canvas.style.webkitMaskImage = grad;
+    canvas.style.maskImage = grad;
+  }
+  function updateUnroll(now) {
+    if (unrollStart === 0) return;
+    var p = (now - unrollStart) / UNROLL_MS;
+    if (p >= 1) { unrollStart = 0; setUnrollMask(1); return; }
+    var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;   // easeInOut
+    setUnrollMask(e);
+  }
+
   // 近空白安全网：长时间无墨则刷新题跋开新卷（页面永远是活的，频率放缓）
+  // 估计衰减放慢到 0.55×（更贴近真实残墨，避免 inkBudget 提前归零误判触发重置 → 空场帧）；
+  // 阈值与驻留时间放宽，只在场真死时才另起一卷。
   function maybeAutoRenew(now, dt) {
-    inkBudget *= Math.exp(-config.DENSITY_DISSIPATION * dt * 0.9);
+    inkBudget *= Math.exp(-config.DENSITY_DISSIPATION * dt * 0.55);
     if (introActive || washing > 0) { nearBlankSince = 0; return; }
-    if (inkBudget < 0.05) {
+    if (inkBudget < 0.04) {
       if (nearBlankSince === 0) nearBlankSince = now;
-      else if (now - nearBlankSince > 9000) { beginScroll(); }
+      else if (now - nearBlankSince > 14000) { beginScroll(); }
     } else {
       nearBlankSince = 0;
     }
@@ -1074,12 +1378,14 @@
     chromeTimer = setTimeout(function () {
       // 键盘焦点落在控件上时不隐去（避免 focus 落在 opacity:0 的隐形控件）
       var ae = document.activeElement;
-      if (ae && (ae.closest('.palette') || ae.classList.contains('renew') || ae.classList.contains('realm-toggle'))) return;
+      if (ae && (ae.closest('.palette') || ae.classList.contains('renew') ||
+                 ae.classList.contains('ling') || ae.classList.contains('realm-toggle') ||
+                 ae.classList.contains('colophon'))) return;
       document.body.classList.add('chrome-idle');
     }, 5000);
   }
   window.addEventListener('pointermove', wakeChrome, { passive: true });
-  [paletteEl, renewEl, realmToggleEl].forEach(function (el) {
+  [paletteEl, renewEl, realmToggleEl, document.getElementById('lingBtn'), document.getElementById('colophon')].forEach(function (el) {
     if (el) el.addEventListener('focusin', wakeChrome);
   });
 
@@ -1129,6 +1435,15 @@
     renewEl.addEventListener('click', function () { startWash(); wakeChrome(); });
   }
 
+  // F2 题跋存档区点击 → 该句重新入墨（好玩交互）
+  var colophonEl = document.getElementById('colophon');
+  if (colophonEl) {
+    colophonEl.addEventListener('click', function () { reinjectCouplet(); wakeChrome(); });
+    colophonEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); reinjectCouplet(); }
+    });
+  }
+
   // 日 / 月双境切换（UI 与 ?realm 同步）
   function setRealm(next) {
     realm = next;
@@ -1140,6 +1455,210 @@
     realmToggleEl.addEventListener('click', function () {
       setRealm(realm === 'night' ? 'day' : 'night');
     });
+  }
+
+  /* ──────────────────────────────────────────
+     12b. F5 声境「聆」：全程序化 Web Audio 合成，零音频文件
+        默认静音；首次开启时创建 AudioContext（满足手势策略）。
+        事件挂在已有编排钩子（落墨 / 字入墨 / 洗卷）上，卡点天然同步。
+     ────────────────────────────────────────── */
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var audio = {
+    ctx: null, master: null, verb: null, bedGain: null,
+    on: false, started: false, farTimer: null
+  };
+  try { audio.on = (localStorage.getItem('eastink-sound') === 'on'); } catch (e) {}
+
+  // 程序化短混响脉冲：噪声指数衰减 buffer（喂 ConvolverNode 加深度）
+  function makeImpulse(ctx, seconds, decay) {
+    var rate = ctx.sampleRate, len = Math.floor(rate * seconds);
+    var buf = ctx.createBuffer(2, len, rate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+    }
+    return buf;
+  }
+  // 棕噪 buffer（积分白噪），给底噪水房氛围
+  function makeBrownNoise(ctx, seconds) {
+    var rate = ctx.sampleRate, len = Math.floor(rate * seconds);
+    var buf = ctx.createBuffer(1, len, rate);
+    var d = buf.getChannelData(0), last = 0;
+    for (var i = 0; i < len; i++) {
+      var w = Math.random() * 2 - 1;
+      last = (last + 0.02 * w) / 1.02;
+      d[i] = last * 3.5;
+    }
+    return buf;
+  }
+
+  function buildAudioGraph() {
+    var ctx = audio.ctx;
+    var master = ctx.createGain(); master.gain.value = 0.9;
+    var comp = ctx.createDynamicsCompressor();          // 防爆音
+    var verb = ctx.createConvolver(); verb.buffer = makeImpulse(ctx, 2.6, 3.0);
+    var verbGain = ctx.createGain(); verbGain.gain.value = 0.32;
+    // master → comp → 出；verb 并联回 master 前
+    master.connect(verb); verb.connect(verbGain); verbGain.connect(comp);
+    master.connect(comp);
+    comp.connect(ctx.destination);
+    audio.master = master; audio.verb = verb;
+
+    // 底噪：极轻水房氛围（棕噪 → 谐振低通 + 慢 LFO），gain ≤ 0.05
+    var bedSrc = ctx.createBufferSource();
+    bedSrc.buffer = makeBrownNoise(ctx, 6); bedSrc.loop = true;
+    var bedLP = ctx.createBiquadFilter(); bedLP.type = 'lowpass';
+    bedLP.frequency.value = 420; bedLP.Q.value = 6;
+    var lfo = ctx.createOscillator(); lfo.frequency.value = 0.06;
+    var lfoGain = ctx.createGain(); lfoGain.gain.value = 140;
+    lfo.connect(lfoGain); lfoGain.connect(bedLP.frequency);
+    var bedGain = ctx.createGain(); bedGain.gain.value = 0.0;
+    bedSrc.connect(bedLP); bedLP.connect(bedGain); bedGain.connect(master);
+    bedSrc.start(); lfo.start();
+    audio.bedGain = bedGain;
+  }
+
+  function ensureAudio() {
+    if (!AudioCtx) return false;
+    if (!audio.ctx) {
+      try { audio.ctx = new AudioCtx(); } catch (e) { return false; }
+      buildAudioGraph();
+      audio.started = true;
+    }
+    if (audio.ctx.state === 'suspended') audio.ctx.resume();
+    return true;
+  }
+
+  // 偶发远滴（8–20s 随机）——底噪之上一点空灵
+  function scheduleFarDrop() {
+    if (audio.farTimer) clearTimeout(audio.farTimer);
+    audio.farTimer = setTimeout(function () {
+      if (audio.on && audio.ctx && !document.hidden) sfxDrop((Math.random() * 0.8 + 0.1), 0.4, true);
+      scheduleFarDrop();
+    }, 8000 + Math.random() * 12000);
+  }
+
+  // 水滴：noise burst 经带通 + sine 600→150Hz 滑落；pan 随 x，响度随 r
+  function sfxDrop(x, r, far) {
+    var ctx = audio.ctx; if (!ctx) return;
+    var t = ctx.currentTime;
+    var pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (pan) pan.pan.value = Math.max(-1, Math.min(1, (x - 0.5) * 1.8));
+    var out = ctx.createGain();
+    var amp = (far ? 0.05 : 0.16) * (0.6 + r * 0.7);
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(amp, t + 0.006);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    // 带通噪声「啵」
+    var nb = ctx.createBufferSource(); nb.buffer = makeImpulse(ctx, 0.12, 1.0);
+    var bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = 1400 - r * 400; bp.Q.value = 1.2;
+    nb.connect(bp); bp.connect(out);
+    // 正弦下滑（水滴主体）
+    var osc = ctx.createOscillator(); osc.type = 'sine';
+    var f0 = 600 - r * 120, f1 = 150 - r * 30;
+    osc.frequency.setValueAtTime(f0, t);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(60, f1), t + 0.22);
+    var oG = ctx.createGain(); oG.gain.value = 0.7;
+    osc.connect(oG); oG.connect(out);
+    var dest = pan || audio.master;
+    out.connect(dest); if (pan) pan.connect(audio.master);
+    nb.start(t); osc.start(t); nb.stop(t + 0.15); osc.stop(t + 0.5);
+  }
+
+  // 字入墨一声磬：FM 钟（载波 ~520–660、调制比 ~3.01、衰减 3–5s）
+  function sfxBell() {
+    var ctx = audio.ctx; if (!ctx) return;
+    var t = ctx.currentTime;
+    var carF = 520 + Math.random() * 140;
+    var car = ctx.createOscillator(); car.type = 'sine'; car.frequency.value = carF;
+    var mod = ctx.createOscillator(); mod.type = 'sine'; mod.frequency.value = carF * 3.01;
+    var modG = ctx.createGain(); modG.gain.value = carF * 1.4;
+    mod.connect(modG); modG.connect(car.frequency);
+    var out = ctx.createGain();
+    var dur = 3.5 + Math.random() * 1.5;
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    car.connect(out); out.connect(audio.master);
+    car.start(t); mod.start(t); car.stop(t + dur); mod.stop(t + dur);
+  }
+
+  // 另起一卷：水幕白噪 L→R 扫 3s + 低通下滑
+  function sfxWash() {
+    var ctx = audio.ctx; if (!ctx) return;
+    var t = ctx.currentTime;
+    var src = ctx.createBufferSource(); src.buffer = makeBrownNoise(ctx, 3.2);
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(5200, t);
+    lp.frequency.exponentialRampToValueAtTime(380, t + 3.0);
+    var out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.linearRampToValueAtTime(0.12, t + 0.4);
+    out.gain.setValueAtTime(0.12, t + 2.2);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + 3.1);
+    var pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (pan) { pan.pan.setValueAtTime(-1, t); pan.pan.linearRampToValueAtTime(1, t + 3.0); }
+    src.connect(lp); lp.connect(out);
+    if (pan) { out.connect(pan); pan.connect(audio.master); } else out.connect(audio.master);
+    src.start(t); src.stop(t + 3.2);
+  }
+
+  // 对外统一事件分发（未开声则 no-op；已有编排钩子直接调）
+  function onAudio(type, opts) {
+    if (!audio.on || !audio.ctx || audio.ctx.state !== 'running') return;
+    opts = opts || {};
+    if (type === 'drop') sfxDrop(opts.x != null ? opts.x : 0.5, opts.r != null ? opts.r : 0.7, false);
+    else if (type === 'bell') sfxBell();
+    else if (type === 'wash') sfxWash();
+  }
+
+  // 聆 开关：首次开启 = 手势 → 建 ctx；底噪渐入；localStorage 记偏好
+  function setSound(on) {
+    if (on) {
+      if (!ensureAudio()) return;
+      audio.on = true;
+      if (audio.bedGain) {
+        var t = audio.ctx.currentTime;
+        audio.bedGain.gain.cancelScheduledValues(t);
+        audio.bedGain.gain.setTargetAtTime(0.045, t, 1.2);  // ≤0.05
+      }
+      scheduleFarDrop();
+    } else {
+      audio.on = false;
+      if (audio.bedGain && audio.ctx) {
+        var t2 = audio.ctx.currentTime;
+        audio.bedGain.gain.setTargetAtTime(0.0001, t2, 0.4);
+      }
+      if (audio.farTimer) { clearTimeout(audio.farTimer); audio.farTimer = null; }
+    }
+    try { localStorage.setItem('eastink-sound', on ? 'on' : 'off'); } catch (e) {}
+    if (lingBtn) {
+      lingBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      lingBtn.classList.toggle('on', on);
+    }
+  }
+
+  // 「聆」竖排按钮（左下「另起一卷」上方）
+  var lingBtn = document.getElementById('lingBtn');
+  if (lingBtn) {
+    lingBtn.addEventListener('click', function () {
+      setSound(!audio.on);
+      wakeChrome();
+    });
+    // 初始视觉：偏好开过则标记按下态（但浏览器手势策略 → 仍需本次点击恢复 ctx）
+    lingBtn.setAttribute('aria-pressed', audio.on ? 'true' : 'false');
+    lingBtn.classList.toggle('on', audio.on);
+    // 开过声的：下次进来 ctx 未建（无手势），保持视觉提示；首次任意手势恢复
+    if (audio.on) {
+      var resumeOnce = function () {
+        if (ensureAudio()) { setSound(true); }
+        window.removeEventListener('pointerdown', resumeOnce);
+      };
+      window.addEventListener('pointerdown', resumeOnce, { once: true });
+    }
   }
 
   /* ──────────────────────────────────────────
@@ -1157,6 +1676,7 @@
     if (!(dt > 0)) dt = 0.0166;       // NaN/0 防护
 
     updateWash(now);
+    updateUnroll(now);                // F4 铺卷：纸从左向右铺展
     ambientFlow(now, dt);             // 全场环流缓流（多色相遇洇染）
     step(dt);
     render(now);
@@ -1177,8 +1697,10 @@
     if (document.hidden) {
       running = false;
       if (rafId) cancelAnimationFrame(rafId);
+      if (audio.ctx && audio.ctx.state === 'running') audio.ctx.suspend();   // F5 后台 suspend
     } else {
       startLoop();
+      if (audio.on && audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
     }
   });
 
@@ -1198,16 +1720,35 @@
     startLoop();
   }, false);
 
-  // 启动：第一卷
-  beginScroll();
+  // ── 启动：先把毛笔体加载完再开第一卷（字入墨用），2s 超时兜底走系统栈 ──
+  var started = false;
+  function startFirstScroll() {
+    if (started) return; started = true;
+    beginScroll();
+  }
   wakeChrome();
-  rafId = requestAnimationFrame(loop);
+  rafId = requestAnimationFrame(loop);                  // 先开循环：铺卷/纸纹立即渲染
+
+  if (document.fonts && document.fonts.load) {
+    var fontTimeout = setTimeout(function () { startFirstScroll(); }, 2000);  // 兜底
+    document.fonts.load('500 40px "MSZ Brush"', '東墨道生一').then(function () {
+      brushReady = true;
+      clearTimeout(fontTimeout);
+      startFirstScroll();
+    }).catch(function () {
+      clearTimeout(fontTimeout);
+      startFirstScroll();                               // 加载失败也开（系统栈兜底）
+    });
+  } else {
+    startFirstScroll();
+  }
 
   // 对外极小接口（调试用，可无）
   window.__eastink = {
     newScroll: beginScroll,
     renew: startWash,
     setPigment: function (i) { currentPigment = i; },
-    setRealm: setRealm
+    setRealm: setRealm,
+    reinject: function () { reinjectCouplet(); }
   };
 })();

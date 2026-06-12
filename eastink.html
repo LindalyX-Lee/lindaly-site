@@ -34,8 +34,9 @@
     <span class="couplet-west" id="coupletWest"></span>
   </div>
 
-  <!-- 右下题跋区：卷号 · 不可复现 + 拍序小注（道生一 …）+ 缩入后的题跋 -->
-  <div class="colophon" id="colophon" aria-hidden="true">
+  <!-- 右下题跋存档区：卷号 · 不可复现 + 拍序小注（道生一 …）+ 缩入后的题跋
+       F2：可点击 → 该句重新入墨 -->
+  <div class="colophon" id="colophon" role="button" tabindex="0" aria-label="题跋：点击让此句重新入墨">
     <span class="colophon-note" id="colophonNote"></span>
     <span class="colophon-tip" id="colophonTip"></span>
     <span class="colophon-meta" id="scrollMeta">第 一 卷 · 不可复现</span>
@@ -43,6 +44,12 @@
 
   <!-- 五只瓷色碟（桌面右缘竖列 / 移动端底部横排） -->
   <div class="palette" id="palette" role="toolbar" aria-label="瓷色碟"></div>
+
+  <!-- 声境「聆」开关（左下「另起一卷」上方，竖排毛笔字） -->
+  <button class="ling" id="lingBtn" aria-label="声音开关" aria-pressed="false" title="聆 · 声音开关">
+    <span class="ling-char">聆</span>
+    <span class="ling-wave" aria-hidden="true"></span>
+  </button>
 
   <!-- 另起一卷（竖排毛笔字按钮，替代旧「涤净」） -->
   <button class="renew" id="renewBtn" aria-label="另起一卷">

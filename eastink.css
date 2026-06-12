@@ -6,6 +6,17 @@
    token 对齐 lindaly.cn styles.css（毛玻璃 + 朱砂 + 书法栈）
    ───────────────────────────────────────────── */
 
+/* ── 自托管毛笔体（同源加载，运行时零外部请求）──
+   Ma Shan Zheng (OFL, © 2018 Ma Shan Zheng Project Authors)，
+   子集化只含 EastInk 题跋/UI 字符集（96 字，37KB woff2）。
+   注：本字为简体字体，无传统字「東」——题字「東墨」之「東」由 --font-brush
+   栈内系统楷/行楷兜底（字入墨内容皆简体，全覆盖）。 */
+@font-face {
+  font-family: "MSZ Brush";
+  src: url("assets/fonts/MaShanZheng-eastink.woff2") format("woff2");
+  font-display: swap;
+}
+
 :root {
   /* 宣纸暖白系（与站点 --bg #faf7f0 同族） */
   --paper: #faf7f0;
@@ -78,11 +89,13 @@ body {
 .colophon,
 .palette,
 .renew,
+.ling,
 .realm-toggle {
   transition: opacity .7s ease, transform .7s ease;
 }
 body.chrome-idle .palette,
 body.chrome-idle .renew,
+body.chrome-idle .ling,
 body.chrome-idle .realm-toggle,
 body.chrome-idle .title,
 body.chrome-idle .colophon {
@@ -221,32 +234,37 @@ body.chrome-idle .couplet.show { opacity: 1; }
   text-shadow: 0 1px 16px var(--halo);
 }
 
-/* ── 右下题跋区：卷号 + 拍序小注 + 缩入的题跋 ──────── */
+/* ── 右下题跋存档区：卷号 + 拍序小注 + 缩入的题跋 ────────
+   F2：调大一号 + 提对比度（解决「缩到右下看不出来」）；可点击 → 该句重新入墨。 */
 .colophon {
   position: fixed;
   right: clamp(.9rem, 3vw, 1.8rem);
   bottom: clamp(.8rem, 3vh, 1.5rem);
   z-index: 5;
-  pointer-events: none;
+  pointer-events: auto;          /* F2：可点击重注入墨 */
+  cursor: pointer;
   user-select: none;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: .28em;
+  gap: .3em;
   text-align: right;
-  max-width: min(58vw, 24rem);
+  max-width: min(62vw, 26rem);
+  -webkit-tap-highlight-color: transparent;
 }
-/* 缩入的东西句题跋（小字常驻） */
+.colophon:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+/* 缩入的东西句题跋（小字常驻；F2 调大 + 提对比） */
 .colophon-note {
   font-family: var(--font-zh);
-  font-size: clamp(.64rem, 1.4vw, .78rem);
+  font-size: clamp(.74rem, 1.7vw, .92rem);    /* F2 调大一号 */
   letter-spacing: .08em;
-  line-height: 1.5;
-  color: var(--fg-soft);
+  line-height: 1.55;
+  color: var(--fg);                           /* F2 提对比：用主前景色 */
   opacity: 0;
   transition: opacity .8s ease;
 }
-.colophon-note.show { opacity: .72; }
+.colophon-note.show { opacity: .9; }          /* F2 提对比：.72 → .9 */
+.colophon:hover .colophon-note.show { opacity: 1; }
 /* 拍序题跋式小注（道生一 / 一生二 …）随拍浮现 */
 .colophon-tip {
   font-family: var(--font-brush);
@@ -413,6 +431,54 @@ body.chrome-idle .couplet.show { opacity: 1; }
 }
 .renew:hover .renew-char { color: var(--accent); }
 
+/* ── 声境「聆」开关（竖排毛笔字，左下「另起一卷」上方）──────
+   默认静音（字偏淡）；开启后字提亮 + 朱印细环 + 声波微动。 */
+.ling {
+  position: fixed;
+  left: clamp(1rem, 3vw, 2rem);
+  bottom: calc(clamp(1.2rem, 5vh, 2.6rem) + 4.4rem);   /* 叠在 renew 上方 */
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .22em;
+  padding: .55rem .5rem;
+  border-radius: 16px;
+  border: 1px solid var(--chrome-line);
+  background: var(--chrome-bg);
+  box-shadow: var(--chrome-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: transform .25s ease, box-shadow .25s ease, background 1.1s ease, border-color 1.1s ease, opacity .7s ease;
+}
+.ling:hover { transform: translateY(-3px); box-shadow: 0 22px 56px -18px rgba(120, 90, 30, .4); }
+.ling:active { transform: translateY(0) scale(.97); }
+.ling:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ling-char {
+  font-family: var(--font-brush);
+  font-size: clamp(1.05rem, 2.4vw, 1.45rem);
+  line-height: 1;
+  color: var(--fg);
+  opacity: .6;                                   /* 静音态：偏淡 */
+  text-shadow: 0 1px 10px var(--halo);
+  transition: opacity .3s ease, color .3s ease;
+}
+.ling:hover .ling-char { color: var(--accent); opacity: .9; }
+/* 声波小符（CSS 三道弧，开启时轻动） */
+.ling-wave {
+  width: 14px; height: 9px;
+  background:
+    radial-gradient(circle at 0 50%, transparent 3px, var(--fg-soft) 3.5px, var(--fg-soft) 4px, transparent 4.5px),
+    radial-gradient(circle at 0 50%, transparent 6px, var(--fg-soft) 6.5px, var(--fg-soft) 7px, transparent 7.5px);
+  opacity: .35;
+  transition: opacity .3s ease;
+}
+.ling.on .ling-char { opacity: 1; color: var(--accent); }
+.ling.on .ling-wave { opacity: .85; animation: lingWave 1.6s ease-in-out infinite; }
+@keyframes lingWave { 0%,100% { opacity: .45; } 50% { opacity: .95; } }
+@media (prefers-reduced-motion: reduce) { .ling.on .ling-wave { animation: none; } }
+
 /* ── 无 WebGL / reduced-motion 静态海报回退 ──── */
 .poster {
   position: fixed; inset: 0;
@@ -511,6 +577,19 @@ body.chrome-idle .couplet.show { opacity: 1; }
     border-radius: 99px;
   }
   .renew-char { font-size: clamp(.92rem, 4.4vw, 1.1rem); }
+
+  /* 聆：移到顶部，紧贴另起一卷右侧（横排小圆） */
+  .ling {
+    flex-direction: row;
+    gap: .18em;
+    left: auto;
+    right: calc(clamp(.7rem, 3vw, 1.2rem) + 42px);   /* 让出右上日月切换 */
+    bottom: auto;
+    top: clamp(1rem, 3vh, 1.8rem);
+    padding: .4rem .6rem;
+    border-radius: 99px;
+  }
+  .ling-char { font-size: clamp(.92rem, 4.4vw, 1.1rem); }
 
   /* 题跋区上移，给底部瓷碟让位 */
   .colophon { bottom: clamp(5.2rem, 13vh, 7rem); }
