@@ -149,9 +149,10 @@
     VELOCITY_DISSIPATION: 0.2,
     PRESSURE: 0.8,
     PRESSURE_ITERATIONS: isMobile ? 16 : 30,
-    CURL: 12,                    // 适中漩涡，非烟雾
-    SPLAT_RADIUS: 0.15,
-    SPLAT_FORCE: 3500
+    CURL: 5,                      // 漩涡降档：12→5，别把墨撕成丝/掏空成铬环
+    DYE_DIFFUSE: 0.30,           // 墨晕轻扩散权重（0=纯平流硬边丝带）
+    SPLAT_RADIUS: 0.22,          // 落墨即带柔边：0.15→0.22
+    SPLAT_FORCE: 2600            // 羽流保留但降幅：3500→2600，别把墨喷成丝
   };
   var washing = 0;               // 涤净进度（>0 时加速耗散 + 水流扫过）
 
@@ -246,6 +247,7 @@
     'uniform vec2 dyeTexelSize;',
     'uniform float dt;',
     'uniform float dissipation;',
+    'uniform float diffuse;',          // >0 only on dye pass：墨晕轻扩散，0 时退化为纯平流
     'vec4 sampleSrc(vec2 uv){',
     '#ifdef MANUAL',
     '  return bilerp(uSource, uv, dyeTexelSize);',
@@ -263,6 +265,21 @@
     'void main(){',
     '  vec2 coord = vUv - dt * sampleVel(vUv) * texelSize;',
     '  vec4 result = sampleSrc(coord);',
+    // 轻扩散：以 backtraced coord 为中心做 5-tap 对称模糊，权重守恒（不偷墨量）。
+    // 把半拉格朗日折出的硬丝带软化成云雾渐变；velocity pass 传 diffuse=0 故不受影响。
+    '  if (diffuse > 0.0) {',
+    // 半径 2.5 texel + 含对角的 8-tap：宽核才能侵蚀「站立」的结壳花纹，1-texel 软不动
+    '    vec2 d = dyeTexelSize * 2.5;',
+    '    vec4 blur = sampleSrc(coord + vec2(d.x, 0.0))',
+    '              + sampleSrc(coord - vec2(d.x, 0.0))',
+    '              + sampleSrc(coord + vec2(0.0, d.y))',
+    '              + sampleSrc(coord - vec2(0.0, d.y))',
+    '              + sampleSrc(coord + vec2(d.x, d.y)) * 0.5',
+    '              + sampleSrc(coord + vec2(-d.x, d.y)) * 0.5',
+    '              + sampleSrc(coord + vec2(d.x, -d.y)) * 0.5',
+    '              + sampleSrc(coord + vec2(-d.x, -d.y)) * 0.5;',
+    '    result = mix(result, blur / 6.0, diffuse);',     // (4 + 4*0.5) = 6 归一
+    '  }',
     '  float decay = 1.0 + dissipation * dt;',
     '  gl_FragColor = result / decay;',
     '}'
@@ -389,7 +406,7 @@
     '  paper = mix(paper * 0.985, paper, 0.5 + 0.5 * vig);',          // 边缘略沉，中心亮（留白）
     // 累计吸收 K·dye（dye 已存 sum(K_i * concentration_i)）
     '  vec3 absK = sampleDye(uv);',
-    // 墨缘 granulation：邻域密度梯度大处加深吸收（墨边比中心深）
+    // 墨缘 granulation：只在「低密度边缘」隐约一线（不满身结壳）
     '  float dC = length(absK);',
     '  vec2 e = dyeTexelSize * 2.0;',
     '  float dL = length(sampleDye(uv - vec2(e.x, 0.0)));',
@@ -397,14 +414,17 @@
     '  float dT = length(sampleDye(uv + vec2(0.0, e.y)));',
     '  float dB = length(sampleDye(uv - vec2(0.0, e.y)));',
     '  float grad = abs(dR - dL) + abs(dT - dB);',
-    '  absK *= 1.0 + grad * 1.6;',                                    // 边缘加深
+    // 权重 1.6→0.5，且按密度软门控：浓墨身（dC 大）几乎不加深，只在稀薄墨缘起效
+    '  float edgeGate = 1.0 - smoothstep(0.15, 0.6, dC);',
+    '  absK *= 1.0 + grad * 0.5 * edgeGate;',
     // 涤净：一道水流横扫，扫过处吸收被冲淡
     '  if (wash > 0.0) {',
     '    float band = smoothstep(0.16, 0.0, abs(uv.x - washX));',
     '    absK *= 1.0 - band * 0.9 * wash;',
     '    absK *= 1.0 - wash * 0.25;',
     '  }',
-    // 逐通道光学吸收：color = paper * exp(-absK)
+    // 逐通道光学吸收：color = paper * exp(-absK)；clamp 保证 col ≤ paper（不出现比纸亮的白心）
+    '  absK = max(absK, 0.0);',
     '  vec3 col = paper * exp(-absK);',
     '  gl_FragColor = vec4(col, 1.0);',
     '}'
@@ -616,13 +636,15 @@
     gl.uniform1i(advectPrg.uniforms.uSource, velocity.read.attach(0));
     gl.uniform1f(advectPrg.uniforms.dt, dt);
     gl.uniform1f(advectPrg.uniforms.dissipation, config.VELOCITY_DISSIPATION);
+    gl.uniform1f(advectPrg.uniforms.diffuse, 0.0);   // 速度场不扩散，保持流动锐利
     blit(velocity.write); velocity.swap();
-    // advect dye（涤净时耗散加速）
+    // advect dye（涤净时耗散加速 + 轻扩散晕染）
     var dyeDiss = config.DENSITY_DISSIPATION + washing * 2.2;
     gl.uniform1i(advectPrg.uniforms.uVelocity, velocity.read.attach(0));
     gl.uniform1i(advectPrg.uniforms.uSource, dye.read.attach(1));
     gl.uniform2f(advectPrg.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
     gl.uniform1f(advectPrg.uniforms.dissipation, dyeDiss);
+    gl.uniform1f(advectPrg.uniforms.diffuse, config.DYE_DIFFUSE);  // 墨晕扩散
     blit(dye.write); dye.swap();
   }
 
@@ -708,21 +730,21 @@
     c2 = pickPigment(0);
     c3 = pickPigment(c2);
 
-    // t≈1.2s 一滴玄墨自上方落下（强向下→墨柱羽流）+「道生一」
+    // t≈1.2s 一滴玄墨自上方落下（向下墨柱羽流，柔不掏空）+「道生一」
     later(function () {
-      dropInk(midX + (rand() - 0.5) * 0.05, topY, 0, { concentration: 1.05, force: config.SPLAT_FORCE * 1.5, dx: (rand() - 0.5) * 200 });
-      inkBudget += 1.05;
+      dropInk(midX + (rand() - 0.5) * 0.05, topY, 0, { concentration: 1.0, force: config.SPLAT_FORCE * 1.0, dx: (rand() - 0.5) * 200 });
+      inkBudget += 1.0;
       showLabel('道生一', 2500);
     }, 1200);
     // t≈5s 第二色偏侧 +「一生二」
     later(function () {
-      dropInk(0.34 + rand() * 0.06, 0.7, c2, { concentration: 0.85, force: config.SPLAT_FORCE * 1.2 });
+      dropInk(0.34 + rand() * 0.06, 0.7, c2, { concentration: 0.85, force: config.SPLAT_FORCE * 0.9 });
       inkBudget += 0.85;
       showLabel('一生二', 2500);
     }, 5000);
     // t≈9s 第三色 +「二生三」
     later(function () {
-      dropInk(0.64 + rand() * 0.06, 0.72, c3, { concentration: 0.85, force: config.SPLAT_FORCE * 1.2 });
+      dropInk(0.64 + rand() * 0.06, 0.72, c3, { concentration: 0.85, force: config.SPLAT_FORCE * 0.9 });
       inkBudget += 0.85;
       showLabel('二生三', 2500);
     }, 9000);
