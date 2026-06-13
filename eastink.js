@@ -273,16 +273,24 @@
     'varying vec2 vUv;',
     'uniform sampler2D uTarget;',   // 当前 dye
     'uniform sampler2D uText;',     // 文字 alpha 图
+    'uniform vec2 dyeTexelSize;',   // dye 单像素 UV：边缘软化半径以 dye 像素计
     'uniform vec3 inkK;',           // 玄墨 K
     'uniform float amount;',        // 本帧注入权重（分帧叠加）
     'uniform float seed;',          // 每帧换种子，让洇墨抖动不同
     'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
     'void main(){',
-    '  float a = texture2D(uText, vUv).r;',
-    // 笔画边缘洇墨：在中等 alpha 处加噪声抖动（实心内部不抖，背景不抖）
+    // 边缘软化（病因#4，主修）：在 dye 网格上对文字 alpha 做 1 个 dye-texel 的 3x3 box 模糊，
+    // 把 720px 硬台阶化成渐变 → display LINEAR 放大成柔边；同时更像墨洇进宣纸（审美对）。
+    '  vec2 r = dyeTexelSize;',
+    '  float a = texture2D(uText, vUv).r * 0.25',
+    '    + (texture2D(uText, vUv + vec2( r.x, 0.0)).r + texture2D(uText, vUv + vec2(-r.x, 0.0)).r',
+    '     + texture2D(uText, vUv + vec2(0.0,  r.y)).r + texture2D(uText, vUv + vec2(0.0, -r.y)).r) * 0.125',
+    '    + (texture2D(uText, vUv + vec2( r.x,  r.y)).r + texture2D(uText, vUv + vec2(-r.x,  r.y)).r',
+    '     + texture2D(uText, vUv + vec2( r.x, -r.y)).r + texture2D(uText, vUv + vec2(-r.x, -r.y)).r) * 0.0625;',
+    // 笔画边缘洇墨：噪声只在「将熄的低 alpha 边」轻抖，幅度收小（不再把 AA 搅成颗粒，病因#3）
     '  float edge = a * (1.0 - a) * 4.0;',                 // 0..1，峰在 a=0.5
     '  float n = hash(vUv * 520.0 + seed) - 0.5;',
-    '  a = clamp(a + n * edge * 0.5, 0.0, 1.0);',
+    '  a = clamp(a + n * edge * 0.16, 0.0, 1.0);',
     '  vec3 base = texture2D(uTarget, vUv).xyz;',
     '  gl_FragColor = vec4(base + inkK * (a * amount), 1.0);',
     '}'
@@ -838,8 +846,10 @@
   // 把一句东句竖排画进离屏 canvas（逐字下排，毛笔字），返回是否成功
   function renderTextToCanvas(text) {
     if (!textCtx) return false;
-    // 文字图分辨率对齐 dye（够清晰又不浪费）；竖排居中
-    var W = dye.width, H = dye.height;
+    // 文字图超采样（SSAA）：离屏 canvas 渲染到 dye 的 SS× 分辨率，让字体原生 AA 抓到
+    // 亚-dye 的边缘细节；上传后 LINEAR 下采样，5K 全屏放大不再台阶（病因#1）。
+    var SS = isMobile ? 2 : 3;
+    var W = dye.width * SS, H = dye.height * SS;
     textCanvas.width = W; textCanvas.height = H;
     textCtx.clearRect(0, 0, W, H);
     var chars = text.split('');
@@ -887,6 +897,7 @@
     bindQuad(textSplatPrg);
     gl.uniform1i(textSplatPrg.uniforms.uTarget, dye.read.attach(0));
     gl.uniform1i(textSplatPrg.uniforms.uText, (gl.activeTexture(gl.TEXTURE1), gl.bindTexture(gl.TEXTURE_2D, textTex), 1));
+    gl.uniform2f(textSplatPrg.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
     gl.uniform3f(textSplatPrg.uniforms.inkK, inkPig.K[0], inkPig.K[1], inkPig.K[2]);
     gl.uniform1f(textSplatPrg.uniforms.amount, amount);
     gl.uniform1f(textSplatPrg.uniforms.seed, seedV);
@@ -1608,7 +1619,9 @@
 
   // 对外统一事件分发（未开声则 no-op；已有编排钩子直接调）
   function onAudio(type, opts) {
-    if (!audio.on || !audio.ctx || audio.ctx.state !== 'running') return;
+    if (!audio.on || !audio.ctx) return;
+    // ctx 刚 resume / Safari 'interrupted' 时别直接丢事件：踢一脚 resume 再放（#2/#3）
+    if (audio.ctx.state !== 'running') { audio.ctx.resume(); return; }
     opts = opts || {};
     if (type === 'drop') sfxDrop(opts.x != null ? opts.x : 0.5, opts.r != null ? opts.r : 0.7, false);
     else if (type === 'bell') sfxBell();
@@ -1625,7 +1638,12 @@
         audio.bedGain.gain.cancelScheduledValues(t);
         audio.bedGain.gain.setTargetAtTime(0.045, t, 1.2);  // ≤0.05
       }
-      scheduleFarDrop();
+      // 先等 resume 落定（WebKit 慢/interrupted），再放一声磬作可闻确认 + 起远滴（#1/#2）
+      Promise.resolve(audio.ctx.resume && audio.ctx.resume()).then(function () {
+        if (!audio.on) return;
+        sfxBell();          // 点「聆」即刻一声磬：开关本身可闻
+        scheduleFarDrop();
+      });
     } else {
       audio.on = false;
       if (audio.bedGain && audio.ctx) {
@@ -1700,7 +1718,8 @@
       if (audio.ctx && audio.ctx.state === 'running') audio.ctx.suspend();   // F5 后台 suspend
     } else {
       startLoop();
-      if (audio.on && audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
+      // 回前台无条件 resume（覆盖 suspended / Safari 'interrupted'）（#3）
+      if (audio.on && audio.ctx && audio.ctx.state !== 'running') audio.ctx.resume();
     }
   });
 
