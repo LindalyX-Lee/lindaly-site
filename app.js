@@ -38,6 +38,14 @@
       url: 'https://lindalyx-lee.github.io/Play-English/'
     },
     {
+      glyph: '墨',
+      name: 'EastInk',
+      zh: '東墨 · 道生一',
+      desc: '一张会生生不息的水墨画布。每次打开新开一卷，颜色、落点、流向不可复现——点墨、拖墨，看不同的墨在水里相遇、洇染、消融。日境宣纸，夜境深水，墨入夜化光。静心内察，随机宿命感。',
+      en: 'An ever-renewing ink-wash canvas — each visit opens a new scroll, its colors, landings and currents never the same twice. Tap and drag the ink; watch it meet, bleed and dissolve. Paper by day, deep water by night, ink turning to light — a still space of chance and fate.',
+      url: '/eastink.html'
+    },
+    {
       glyph: '酿',
       name: 'Next…',
       zh: '下一个小东西',
