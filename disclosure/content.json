@@ -1,0 +1,1150 @@
+{
+  "meta": {
+    "version": "0.3",
+    "title": "DISCLOSURE 揭秘日 · 专案档案墙",
+    "caseNo": "CASE FILE №1947–2026",
+    "hub": "disclosure-day",
+    "tiers": {
+      "documented": {
+        "label": "实证 Documented",
+        "emoji": "🟢",
+        "stamp": "CONFIRMED",
+        "desc": "有可查的官方记录 / 文件 / 影像（事件成文；外星解读未必成立）",
+        "confidence": 95
+      },
+      "testimony": {
+        "label": "证词 Testimony",
+        "emoji": "🟡",
+        "stamp": "TESTIMONY",
+        "desc": "宣誓 / 目击 / 吹哨人陈述，未经独立证实",
+        "confidence": 60
+      },
+      "fringe": {
+        "label": "超自然·未证实 Fringe",
+        "emoji": "🔴",
+        "stamp": "UNVERIFIED",
+        "desc": "通灵 / 超能力 / 骗局 / 已被证伪，无实证基础",
+        "confidence": 20
+      },
+      "fiction": {
+        "label": "虚构 Fiction",
+        "emoji": "🎬",
+        "stamp": "FICTION",
+        "desc": "影视虚构（本案的原点）",
+        "confidence": 40
+      }
+    },
+    "clusters": {
+      "film": "影片 FILM",
+      "us-gov": "美国政府/军方 GOV",
+      "cases": "目击悬案 SIGHTINGS",
+      "abduction": "绑架·接触 ABDUCTION",
+      "world": "海外 INTERNATIONAL",
+      "movement": "揭秘运动 MOVEMENT",
+      "channeled": "通灵 CHANNELED",
+      "china": "中国 CHINA"
+    },
+    "notes": "v0.3 证据墙：33 节点，以《Disclosure Day》海报为中心。图/视频/YouTube 均已核验来源；YouTube ID 经 oEmbed 验证为真实官方/媒体源。授权：标 [fair-use] 的（电影海报、第三类接触海报、希尔夫妇照）推 Lindaly.cn 前需替换为公共领域素材；其余多为美政府公共领域或 Wikimedia。发布前建议做一次外链 link-check。"
+  },
+  "nodes": [
+    {
+      "id": "disclosure-day",
+      "cluster": "film",
+      "tier": "fiction",
+      "year": "2026",
+      "title": "《Disclosure Day》揭秘日",
+      "claim": "斯皮尔伯格 2026 UFO 惊悚片（环球发行 / Amblin，6-12 上映，145 分钟，$115M，John Williams 第 30 次配乐）。网络安全专家 Kellner（Josh O'Connor）窃取政府数十年隐藏的外星档案、成为吹哨人；气象主播 Margaret（Emily Blunt）一次遭遇后觉醒，两人联手把真相公之于众。导演称『他们来过，而且现在就在这里』，并说本片是虚构『只是技术性细节』。本案的原点。",
+      "image": "assets/disclosure-day.jpg",
+      "imageCredit": "官方海报 [fair-use·推站前替换]",
+      "video": null,
+      "youtube": "https://www.youtube.com/watch?v=SCYT8vb2siQ",
+      "sources": [
+        {
+          "label": "Wikipedia · Disclosure Day",
+          "url": "https://en.wikipedia.org/wiki/Disclosure_Day"
+        },
+        {
+          "label": "Variety · 首批口碑",
+          "url": "https://variety.com/2026/film/news/disclosure-day-first-reactions-spielberg-emily-blunt-praise-1236760402/"
+        }
+      ],
+      "filmLink": "全片前提",
+      "connects": [
+        "close-encounters",
+        "roswell",
+        "twining-memo",
+        "aatip",
+        "tictac-nimitz",
+        "grusch-2023",
+        "betty-barney-hill",
+        "hynek"
+      ]
+    },
+    {
+      "id": "close-encounters",
+      "cluster": "film",
+      "tier": "fiction",
+      "year": "1977",
+      "title": "《第三类接触》Close Encounters",
+      "claim": "斯皮尔伯格 1977 经典，片名取自蓝皮书科学顾问 J. Allen Hynek 的『接触分类法』，Hynek 本人客串。影评称《揭秘日》是它隔半世纪的精神续作。",
+      "image": "assets/ce3k.jpg",
+      "imageCredit": "1977 海报 [fair-use·推站前替换]",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Mental Floss · CE3K 幕后",
+          "url": "https://www.mentalfloss.com/article/63198/15-things-you-may-not-know-about-close-encounters-third-kind"
+        },
+        {
+          "label": "SlashFilm · 与揭秘日的连接",
+          "url": "https://www.slashfilm.com/2192891/disclosure-day-connection-steven-spielberg-alien-movie-close-encounters-of-the-third-kind/"
+        }
+      ],
+      "filmLink": "斯皮尔伯格自己的『前传』",
+      "connects": [
+        "hynek",
+        "blue-book"
+      ]
+    },
+    {
+      "id": "twining-memo",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "1947",
+      "title": "Twining 备忘录",
+      "claim": "1947-09-23 空军装备司令部司令 Nathan Twining 中将的解密备忘录《关于飞碟的意见》：『此现象真实，并非幻觉或虚构』。直接催生 Project Sign→Grudge→Blue Book。影片角色 Nathan Twining 即致敬此真实将军。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Skeptical Inquirer · Twining 与 1947 飞碟问题",
+          "url": "https://skepticalinquirer.org/2020/03/general-nathan-f-twining-and-the-flying-disc-problem-of-1947/"
+        },
+        {
+          "label": "Wikipedia · Nathan F. Twining",
+          "url": "https://en.wikipedia.org/wiki/Nathan_F._Twining"
+        }
+      ],
+      "filmLink": "影片人物 Nathan Twining 的真实原型",
+      "connects": [
+        "roswell",
+        "blue-book"
+      ]
+    },
+    {
+      "id": "blue-book",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "1952–69",
+      "title": "蓝皮书计划 Project Blue Book",
+      "claim": "美空军正式 UFO 调查项目，12 年查 12,618 起目击、701 起至今『无法识别』；1968 Condon 报告结论『不值得续研』而终结，档案 1976 起存美国国家档案馆、公众可查。",
+      "image": "assets/bluebook.jpg",
+      "imageCredit": "Blue Book 状态报告原档（美政府·公共领域）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "美国国家档案馆 · Blue Book",
+          "url": "https://www.archives.gov/research/military/air-force/ufos"
+        },
+        {
+          "label": "HISTORY · Project Blue Book",
+          "url": "https://www.history.com/articles/project-blue-book"
+        }
+      ],
+      "filmLink": "影片『政府早就在查』主题的历史本体",
+      "connects": [
+        "robertson-panel",
+        "odni-2021"
+      ]
+    },
+    {
+      "id": "robertson-panel",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "1953",
+      "title": "Robertson 专家组",
+      "claim": "CIA 1953 召集的科学顾问组，解密报告建议对公众做『去神秘化』教育宣传（甚至提议借迪士尼/电视）以降低 UFO 关注——这是『政府有意压制公众兴趣』最硬的成文证据；但其结论是多为误认，不涉外星。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Robertson Panel",
+          "url": "https://en.wikipedia.org/wiki/Robertson_Panel"
+        },
+        {
+          "label": "HISTORY · CIA 与 UFO",
+          "url": "https://www.history.com/articles/ufo-sightings-cia-robertson-condon"
+        }
+      ],
+      "filmLink": "影片『政府压制真相』的成文依据",
+      "connects": [
+        "cia-files",
+        "blue-book"
+      ]
+    },
+    {
+      "id": "cia-files",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "2021",
+      "title": "CIA UFO 解密档案",
+      "claim": "经 FOIA，CIA 把它声称的『全部』UFO 相关档案（约 2700 页，1940s–90s）交给独立档案站 The Black Vault，2021 起公众可下载；文档真实、来源官方，但多为冷战情报观察与剪报，不构成外星证据。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Smithsonian Magazine",
+          "url": "https://www.smithsonianmag.com/smart-news/you-can-now-explore-cias-entire-collection-ufo-related-documents-180976756/"
+        },
+        {
+          "label": "The Black Vault · CIA Collection",
+          "url": "https://www.theblackvault.com/documentarchive/ufos-the-central-intelligence-agency-cia-collection/"
+        }
+      ],
+      "filmLink": "现实中可下载的政府档案库",
+      "connects": [
+        "aaro-2024"
+      ]
+    },
+    {
+      "id": "aatip",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "2007/2017",
+      "title": "AATIP 先进航空威胁识别计划",
+      "claim": "五角大楼 2007–2012 秘密 UAP 项目（$2200 万，参议员 Harry Reid 推动，Luis Elizondo 负责），2017-12 经《纽约时报》同步曝光、并解密海军 FLIR 视频——公认现代政府 UAP 透明化的引爆点，也是影片的灵感来源。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · AATIP",
+          "url": "https://en.wikipedia.org/wiki/Advanced_Aerospace_Threat_Identification_Program"
+        },
+        {
+          "label": "Nextgov · 五角大楼证实 $22M 项目",
+          "url": "https://www.nextgov.com/policy/2017/12/pentagon-has-confirmed-its-22m-program-investigate-ufos/144642/"
+        }
+      ],
+      "filmLink": "影片灵感直接来源（2007 启动 / 2017 证实）",
+      "connects": [
+        "tictac-nimitz",
+        "odni-2021",
+        "grusch-2023"
+      ]
+    },
+    {
+      "id": "tictac-nimitz",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "2004",
+      "title": "Tic-Tac / Nimitz 遭遇",
+      "claim": "2004-11 海军 Nimitz 战斗群飞行员遭遇『Tic-Tac』形飞行物；五角大楼 2020 公布 FLIR/GIMBAL/GOFAST 三段视频（右侧可播放 FLIR1 官方原片）。官方认证的是影像真实、目标『仍未识别』，并非外星起源。",
+      "image": "assets/tictac.jpg",
+      "imageCredit": "FLIR1 官方影像截帧（美 DoD/海军·公共领域）",
+      "video": "assets/flir1.webm",
+      "videoCredit": "FLIR1 Official UAP Footage — U.S. DoD/Navy 公开发布（公共领域）",
+      "youtube": null,
+      "sources": [
+        {
+          "label": "ODNI 官方 UAP 初步评估 (PDF)",
+          "url": "https://www.dni.gov/files/ODNI/documents/assessments/Prelimary-Assessment-UAP-20210625.pdf"
+        }
+      ],
+      "filmLink": "影片军方目击桥段的真实原型",
+      "connects": [
+        "odni-2021"
+      ]
+    },
+    {
+      "id": "odni-2021",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "2021",
+      "title": "ODNI UAP 评估报告",
+      "claim": "2021-06-25 美国国家情报总监办公室发布首份官方 UAP 报告，评估 2004–2021 年 144 起军方目击，承认绝大多数无法解释——官方层面打破数十年禁忌。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "ODNI 报告原文 (PDF)",
+          "url": "https://www.dni.gov/files/ODNI/documents/assessments/Prelimary-Assessment-UAP-20210625.pdf"
+        },
+        {
+          "label": "ODNI 官方发布页",
+          "url": "https://www.dni.gov/index.php/newsroom/reports-publications/reports-publications-2021/3550-preliminary-assessment-unidentified-aerial-phenomena"
+        }
+      ],
+      "filmLink": "影片『政府终于承认』情节的现实对应",
+      "connects": [
+        "aaro-2024",
+        "grusch-2023"
+      ]
+    },
+    {
+      "id": "aaro-2024",
+      "cluster": "us-gov",
+      "tier": "documented",
+      "year": "2024",
+      "title": "AARO 历史记录报告",
+      "claim": "国防部『全域异常解决办公室』(AARO) 2024-03-08 官方报告，回溯 1945 以来美政府 UAP 调查，结论：未发现任何可核实证据表明存在外星技术或政府逆向工程外星飞船——这是当前官方立场最权威的成文反方证据（与众多吹哨人证词直接对冲）。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "DoD/AARO 官方 PDF",
+          "url": "https://media.defense.gov/2024/Mar/08/2003409233/-1/-1/0/DOPSR-2024-0263-AARO-HISTORICAL-RECORD-REPORT-VOLUME-1-2024.PDF"
+        }
+      ],
+      "filmLink": "对照影片：现实官方仍说『查无外星实证』",
+      "connects": [
+        "grusch-2023"
+      ]
+    },
+    {
+      "id": "grusch-2023",
+      "cluster": "us-gov",
+      "tier": "testimony",
+      "year": "2023",
+      "title": "Grusch 国会作证",
+      "claim": "2023-07-26 前情报官 Grusch 国会宣誓作证，称政府运作数十年『坠毁器回收与逆向工程』计划、寻获『非人类生物遗骸』——基于 40+ 官员转述，本人自承未亲见、无实物证据。",
+      "image": null,
+      "video": null,
+      "youtube": "https://www.youtube.com/watch?v=9wHyoEOyT6Q",
+      "sources": [
+        {
+          "label": "美国国会 · 听证记录 (PDF)",
+          "url": "https://www.congress.gov/118/meeting/house/116282/documents/HHRG-118-GO06-Transcript-20230726.pdf"
+        },
+        {
+          "label": "NPR · 听证报道",
+          "url": "https://www.npr.org/2023/07/27/1190390376/ufo-hearing-non-human-biologics-uaps"
+        }
+      ],
+      "filmLink": "影片『吹哨人揭露掩盖』主线的现实镜像",
+      "connects": [
+        "age-of-disclosure",
+        "disclosure-project"
+      ]
+    },
+    {
+      "id": "roswell",
+      "cluster": "cases",
+      "tier": "documented",
+      "year": "1947",
+      "title": "罗斯威尔事件 Roswell",
+      "claim": "1947-07-08 罗斯威尔机场新闻稿称捕获『飞碟』，数小时后改口气象气球；1994 官方披露真相是绝密 Project Mogul 核试监测气球。新闻稿与 Mogul 是实证🟢，『外星遗骸』无实证。UFO 传说的起点（影片『79 年谎言』即指 1947）。",
+      "image": "assets/roswell.jpg",
+      "imageCredit": "Roswell Daily Record 头版 1947（公共领域）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Britannica · Roswell",
+          "url": "https://www.britannica.com/event/Roswell-incident"
+        },
+        {
+          "label": "HISTORY · 罗斯威尔真相",
+          "url": "https://www.history.com/articles/roswell-ufo-aliens-what-happened"
+        }
+      ],
+      "filmLink": "预告『79 年谎言』直指 1947",
+      "connects": [
+        "kenneth-arnold",
+        "twining-memo",
+        "mj12"
+      ]
+    },
+    {
+      "id": "kenneth-arnold",
+      "cluster": "cases",
+      "tier": "testimony",
+      "year": "1947",
+      "title": "肯尼斯·阿诺德目击",
+      "claim": "民航飞行员阿诺德称在雷尼尔山附近见 9 个高速飞行物，记者误报催生了『飞碟 flying saucer』一词；仅单一目击者证词、无照片雷达，但具历史奠基意义。",
+      "image": "assets/arnold.jpg",
+      "imageCredit": "Kenneth Arnold（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Kenneth Arnold sighting",
+          "url": "https://en.wikipedia.org/wiki/Kenneth_Arnold_UFO_sighting"
+        },
+        {
+          "label": "史密森尼航空航天博物馆",
+          "url": "https://airandspace.si.edu/stories/editorial/1947-year-flying-saucer"
+        }
+      ],
+      "filmLink": "『飞碟』一词的源头",
+      "connects": [
+        "dc1952"
+      ]
+    },
+    {
+      "id": "dc1952",
+      "cluster": "cases",
+      "tier": "documented",
+      "year": "1952",
+      "title": "华盛顿特区雷达事件",
+      "claim": "1952-07 华盛顿国家机场与安德鲁斯空军基地雷达连续两个周末捕获不明目标、引发战机拦截，并促成战后最大规模五角大楼记者会；雷达记录与记者会均为真实官方档案。官方最终归因『温度逆增层』，但在场雷达员当场反驳，至今有争议。",
+      "image": "assets/dc1952.jpg",
+      "imageCredit": "1952 华盛顿报道（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · 1952 Washington D.C. UFO",
+          "url": "https://en.wikipedia.org/wiki/1952_Washington,_D.C.,_UFO_incident"
+        },
+        {
+          "label": "HISTORY",
+          "url": "https://www.history.com/articles/ufos-washington-white-house-air-force-coverup"
+        }
+      ],
+      "filmLink": "雷达级官方档案的早期高峰",
+      "connects": [
+        "phoenix-lights",
+        "tehran"
+      ]
+    },
+    {
+      "id": "phoenix-lights",
+      "cluster": "cases",
+      "tier": "testimony",
+      "year": "1997",
+      "title": "凤凰城之光 Phoenix Lights",
+      "claim": "1997-03-13 数千人（含时任州长 Symington）目击横跨亚利桑那的巨大三角形光阵；空军归因 A-10 机队投放照明弹，州长 2007 改口称所见『非人间之物』。无可靠雷达/实物证据，属大规模目击证词。",
+      "image": "assets/phoenix.jpg",
+      "imageCredit": "Phoenix Lights（Wikimedia）",
+      "video": null,
+      "youtube": "https://www.youtube.com/watch?v=5Q87RbYkI90",
+      "sources": [
+        {
+          "label": "Wikipedia · Phoenix Lights",
+          "url": "https://en.wikipedia.org/wiki/Phoenix_Lights"
+        },
+        {
+          "label": "NewsNation",
+          "url": "https://www.newsnationnow.com/space/ufo/phoenix-lights-incident-1997/"
+        }
+      ],
+      "filmLink": "大规模平民目击的标志案",
+      "connects": [
+        "rendlesham"
+      ]
+    },
+    {
+      "id": "rendlesham",
+      "cluster": "cases",
+      "tier": "documented",
+      "year": "1980",
+      "title": "兰德舍姆森林事件",
+      "claim": "1980 年底英国 RAF Woodbridge/Bentwaters（美军使用）多名军人目击不明光体；副基地指挥官 Halt 中校的备忘录与微型录音带是真实解密文件（『英国版罗斯威尔』）。怀疑论解释为灯塔+火流星+亮星，文档真实但成因多被认为已大致解释。",
+      "image": "assets/rendlesham.jpg",
+      "imageCredit": "Rendlesham 森林（Wikimedia）",
+      "video": null,
+      "youtube": "https://www.youtube.com/watch?v=gy5tIevquP0",
+      "sources": [
+        {
+          "label": "Wikipedia · Rendlesham Forest incident",
+          "url": "https://en.wikipedia.org/wiki/Rendlesham_Forest_incident"
+        },
+        {
+          "label": "The Black Vault · Halt 备忘录",
+          "url": "https://www.theblackvault.com/documentarchive/the-halt-memo-the-rendlesham-forest-incident/"
+        }
+      ],
+      "filmLink": "军方书面记录的海外目击",
+      "connects": [
+        "tehran"
+      ]
+    },
+    {
+      "id": "tehran",
+      "cluster": "cases",
+      "tier": "documented",
+      "year": "1976",
+      "title": "德黑兰 F-4 事件",
+      "claim": "1976-09-19 两架伊朗 F-4 在接近一不明发光体时报告仪表、通讯及武器系统失效，撤离后恢复；美国国防情报局(DIA)四页报告已解密、称证人高度可信、目标不明。怀疑论者归因木星误认+战机电路老化，文件真实🟢但成因仍争议。",
+      "image": "assets/tehran.jpg",
+      "imageCredit": "Tehran F-4 事件（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · 1976 Tehran UFO incident",
+          "url": "https://en.wikipedia.org/wiki/1976_Tehran_UFO_incident"
+        },
+        {
+          "label": "The Black Vault · 案卷",
+          "url": "https://www.theblackvault.com/casefiles/the-1976-iran-incident/"
+        }
+      ],
+      "filmLink": "军机系统失效的解密案",
+      "connects": [
+        "dc1952"
+      ]
+    },
+    {
+      "id": "varginha",
+      "cluster": "cases",
+      "tier": "fringe",
+      "year": "1996",
+      "title": "巴西 Varginha 事件",
+      "claim": "1996-01 巴西 Varginha 三名女子称遇红眼大头矮生物，随后传出军方介入、回收非人生物、士兵离奇死亡；巴西军方称是认错人+例行调动，至今无实证🔴。近年美国会有人推动解密相关记录。",
+      "image": "assets/varginha.jpg",
+      "imageCredit": "Varginha（Wikimedia Commons）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Varginha UFO incident",
+          "url": "https://en.wikipedia.org/wiki/Varginha_UFO_incident"
+        },
+        {
+          "label": "Newsweek",
+          "url": "https://www.newsweek.com/varginha-ufo-incident-campaign-demand-release-files-12054378"
+        }
+      ],
+      "filmLink": "海外回收叙事的现实回声",
+      "connects": [
+        "grusch-2023"
+      ]
+    },
+    {
+      "id": "betty-barney-hill",
+      "cluster": "abduction",
+      "tier": "fringe",
+      "year": "1961",
+      "title": "希尔夫妇绑架案",
+      "claim": "1961-09 新罕布什尔州希尔夫妇（民权活动家）称被外星人绑架；催眠回溯中 Betty 画出『星图』，后被 Marjorie Fish 附会为指向 39 光年外泽塔网状星系。史上最著名、记录最完整的绑架案——但属催眠所得、无实物证据🔴。影片灰人绑架/泽塔星人设定的源头。",
+      "image": "assets/hill.jpg",
+      "imageCredit": "Barney & Betty Hill [fair-use·推站前替换]",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Barney and Betty Hill",
+          "url": "https://en.wikipedia.org/wiki/Barney_and_Betty_Hill_incident"
+        },
+        {
+          "label": "波士顿公共图书馆",
+          "url": "https://www.bpl.org/blogs/post/the-abduction-of-betty-and-barney-hill/"
+        }
+      ],
+      "filmLink": "影片灰人绑架 + 泽塔星人的源头",
+      "connects": [
+        "grey-alien",
+        "travis-walton",
+        "dolores-cannon"
+      ]
+    },
+    {
+      "id": "travis-walton",
+      "cluster": "abduction",
+      "tier": "testimony",
+      "year": "1975",
+      "title": "特拉维斯·沃尔顿事件",
+      "claim": "亚利桑那伐木工 Walton 称被 UFO 光束击中后失踪 5 天、醒来在飞船内见到大头灰人；6 名同伴中 5 人通过测谎（测谎只能证明他们相信发生异常，不能证明绑架），怀疑论者认为是为逃避伐木合同违约金。证词+测谎，无独立物证。",
+      "image": "assets/walton.jpg",
+      "imageCredit": "Travis Walton（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Travis Walton incident",
+          "url": "https://en.wikipedia.org/wiki/Travis_Walton_incident"
+        },
+        {
+          "label": "RationalWiki（怀疑分析）",
+          "url": "https://rationalwiki.org/wiki/Travis_Walton"
+        }
+      ],
+      "filmLink": "光束绑架叙事的代表案",
+      "connects": [
+        "pascagoula",
+        "grey-alien"
+      ]
+    },
+    {
+      "id": "pascagoula",
+      "cluster": "abduction",
+      "tier": "testimony",
+      "year": "1973",
+      "title": "帕斯卡古拉绑架",
+      "claim": "密西西比州两名钓鱼者称被三个机器人状生物拖入蛋形飞船检查；两人口供 50 年不变、当场报警并通过测谎，是少有的双证人案，但仍属未经独立验证的目击证词、无实体证据。",
+      "image": "assets/pascagoula.jpg",
+      "imageCredit": "Pascagoula（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Pascagoula incident",
+          "url": "https://en.wikipedia.org/wiki/Pascagoula_incident"
+        },
+        {
+          "label": "NBC News",
+          "url": "https://www.nbcnews.com/sciencemain/man-says-1973-ufo-abduction-incident-turned-life-upside-down-8c11377316"
+        }
+      ],
+      "filmLink": "双证人接触案",
+      "connects": [
+        "grey-alien"
+      ]
+    },
+    {
+      "id": "tunguska",
+      "cluster": "world",
+      "tier": "documented",
+      "year": "1908",
+      "title": "通古斯大爆炸",
+      "claim": "1908-06-30 西伯利亚通古斯河上空一颗约 50–60 米的小行星/彗星体在高空空爆，夷平约 2150 平方公里、约 3000 万棵树；确凿历史事件🟢，科学共识为陨石空爆，常被 UFO 圈附会但科学上无外星关联。",
+      "image": "assets/tunguska.jpg",
+      "imageCredit": "通古斯倒木 1929（Wikimedia·公共领域）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Tunguska event",
+          "url": "https://en.wikipedia.org/wiki/Tunguska_event"
+        },
+        {
+          "label": "Britannica",
+          "url": "https://www.britannica.com/event/Tunguska-event"
+        }
+      ],
+      "filmLink": "被附会成外星的真实天文事件",
+      "connects": [
+        "voronezh"
+      ]
+    },
+    {
+      "id": "voronezh",
+      "cluster": "world",
+      "tier": "testimony",
+      "year": "1989",
+      "title": "沃罗涅日事件",
+      "claim": "1989-09-27 苏联沃罗涅日数名儿童称目击红色球状物降落、走出『三眼外星人』与机器人；苏联官方通讯社塔斯社(TASS)罕见公开报道并称发现『着陆痕迹』。儿童目击+国家媒体背书是史实，外星属性未经独立证实（正值 glasnost 开放期）。",
+      "image": "assets/voronezh.jpg",
+      "imageCredit": "Voronezh（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Voronezh UFO incident",
+          "url": "https://en.wikipedia.org/wiki/Voronezh_UFO_incident"
+        },
+        {
+          "label": "TIME",
+          "url": "https://time.com/3475954/voronezh-ufo-report-1989/"
+        }
+      ],
+      "filmLink": "国家媒体背书的海外目击",
+      "connects": [
+        "rendlesham"
+      ]
+    },
+    {
+      "id": "disclosure-project",
+      "cluster": "movement",
+      "tier": "documented",
+      "year": "2001",
+      "title": "披露计划（Greer）",
+      "claim": "2001-05-09 Steven Greer 在华盛顿国家新闻俱乐部召开记者会，逾 20 名军方/政府/情报证人公开露面呼吁国会听证——记者会本身有完整记录🟢；但证人所称『政府掌握外星飞船与反重力技术』属未经证实的证词，需与『事件发生过』严格区分。",
+      "image": "assets/greer.jpg",
+      "imageCredit": "Steven Greer（Wikimedia）",
+      "video": null,
+      "youtube": "https://www.youtube.com/watch?v=8i-48LpRB9c",
+      "sources": [
+        {
+          "label": "National Press Club（25 周年页确认 2001 原始事件）",
+          "url": "https://www.press.org/events/25th-anniversary-2001-disclosure-project-press-conference"
+        },
+        {
+          "label": "WorldCat（2001 记者会存档）",
+          "url": "https://search.worldcat.org/title/52741633"
+        }
+      ],
+      "filmLink": "现实版『把证人摆上台』的揭秘行动",
+      "connects": [
+        "age-of-disclosure",
+        "bob-lazar"
+      ]
+    },
+    {
+      "id": "bob-lazar",
+      "cluster": "movement",
+      "tier": "testimony",
+      "year": "1989",
+      "title": "鲍勃·拉扎尔 / Area 51",
+      "claim": "1989-11 拉扎尔经记者 George Knapp 在电视公开声称曾在 Area 51 附近 S-4 设施逆向工程外星飞船、用『115 号元素』作燃料——受访属事实，但其 MIT/Caltech 学历无任何院校记录可查，核心主张广受质疑，归为可信度严重存疑的证词。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Skeptic · 深度质疑",
+          "url": "https://www.skeptic.com/article/the-strange-case-of-bob-lazar/"
+        },
+        {
+          "label": "HowStuffWorks",
+          "url": "https://science.howstuffworks.com/space/aliens-ufos/bob-lazar.htm"
+        }
+      ],
+      "filmLink": "Area 51 / 逆向工程叙事的源头",
+      "connects": [
+        "mj12"
+      ]
+    },
+    {
+      "id": "mj12",
+      "cluster": "movement",
+      "tier": "fringe",
+      "year": "1984",
+      "title": "MJ-12 文件",
+      "claim": "1984 以匿名底片出现的文件，声称杜鲁门设立秘密外星事务委员会『Majestic 12』；FBI 调查后在文件上盖『BOGUS（伪造）』，杜鲁门签名被证实是从真备忘录照相拼贴，国家档案馆指出安全标记造假——公认骗局🔴，无实证基础。",
+      "image": "assets/mj12.jpg",
+      "imageCredit": "MJ-12 文件（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Majestic 12",
+          "url": "https://en.wikipedia.org/wiki/Majestic_12"
+        },
+        {
+          "label": "Slate · FBI 判定 bogus",
+          "url": "https://slate.com/human-interest/2016/12/the-fbi-debunked-the-majestic-12-ufo-documents-in-the-most-childish-way-possible.html"
+        }
+      ],
+      "filmLink": "影片『秘密委员会掩盖』的现实原型（但文件本身是假的）",
+      "connects": [
+        "roswell"
+      ]
+    },
+    {
+      "id": "age-of-disclosure",
+      "cluster": "movement",
+      "tier": "testimony",
+      "year": "2025",
+      "title": "《The Age of Disclosure》",
+      "claim": "2025 真实纪录片，Luis Elizondo 旁白，采访 34 位美政府高官（含国务卿 Rubio），指控长达 80 年的『非人类智能』掩盖；影评指出片方『未提供可证实的证据』🟡。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · The Age of Disclosure",
+          "url": "https://en.wikipedia.org/wiki/The_Age_of_Disclosure"
+        },
+        {
+          "label": "IMDb",
+          "url": "https://www.imdb.com/title/tt35520315/"
+        }
+      ],
+      "filmLink": "与斯皮尔伯格虚构片同主题的『真实版』",
+      "connects": [
+        "grusch-2023"
+      ]
+    },
+    {
+      "id": "hynek",
+      "cluster": "movement",
+      "tier": "documented",
+      "year": "1972",
+      "title": "J. Allen Hynek",
+      "claim": "天文学家，1952–69 任空军『蓝皮书』科学顾问；1972 提出『第三类接触』分类体系（启发斯皮尔伯格同名电影）。把 UFO 研究学术化的努力有完整著作记录；分类是描述框架，不等于证明外星来访。",
+      "image": "assets/hynek.jpg",
+      "imageCredit": "J. Allen Hynek（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · J. Allen Hynek",
+          "url": "https://en.wikipedia.org/wiki/J._Allen_Hynek"
+        },
+        {
+          "label": "HISTORY",
+          "url": "https://www.history.com/articles/j-allen-hynek-ufos-project-blue-book"
+        }
+      ],
+      "filmLink": "『第三类接触』一词的创造者",
+      "connects": [
+        "blue-book",
+        "close-encounters"
+      ]
+    },
+    {
+      "id": "dolores-cannon",
+      "cluster": "channeled",
+      "tier": "fringe",
+      "year": "1998",
+      "title": "《监护人》Dolores Cannon",
+      "claim": "Dolores Cannon《The Custodians: Beyond Abduction》记录其 1986–1998 用催眠回溯『外星绑架』案例，声称借受试者直接与外星存在对话；属催眠/通灵材料，无实证基础🔴——但流传甚广（Goodreads 4.45）。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Goodreads · Custodians",
+          "url": "https://www.goodreads.com/en/book/show/343012.Custodians"
+        },
+        {
+          "label": "Amazon",
+          "url": "https://www.amazon.com/Custodians-Beyond-Abduction-Dolores-Cannon/dp/1886940045"
+        }
+      ],
+      "filmLink": "外星接触叙事的『通灵』一端",
+      "connects": [
+        "grey-alien"
+      ]
+    },
+    {
+      "id": "grey-alien",
+      "cluster": "channeled",
+      "tier": "fringe",
+      "year": "1961–",
+      "title": "灰人原型与泽塔谱系",
+      "claim": "『灰人』（小身大头黑色大眼）并非被证实的物种，而是文化原型：源于希尔案，1969 教师 Marjorie Fish 把催眠下的『星图』附会到泽塔网状星双星；卡尔·萨根在《Cosmos》中演示该星图与真实星图毫无对应。属民俗/伪科学谱系，无任何天文学或实证基础🔴。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Grey alien",
+          "url": "https://en.wikipedia.org/wiki/Grey_alien"
+        },
+        {
+          "label": "Wikipedia · Zeta Reticuli",
+          "url": "https://en.wikipedia.org/wiki/Zeta_Reticuli"
+        }
+      ],
+      "filmLink": "影片『灰人』形象的文化原型",
+      "connects": [
+        "betty-barney-hill"
+      ]
+    },
+    {
+      "id": "geipan",
+      "cluster": "world",
+      "tier": "documented",
+      "year": "1977",
+      "title": "GEIPAN 法国官方 UAP 调查组",
+      "claim": "法国官方机构 GEIPAN（隶属国家空间研究中心 CNES），1977 年成立，40 余年分析约 5300 起案例、9700+ 份证词，由含宪兵、空天军、CNRS 的委员会监督。机构与档案公开可查🟢；约 3% 长期『无法解释』并不等于证明外星来源。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "GEIPAN 官网 (CNES)",
+          "url": "https://www.cnes-geipan.fr/en/missions-methodes-et-resultats"
+        },
+        {
+          "label": "Wikipedia · GEIPAN",
+          "url": "https://en.wikipedia.org/wiki/GEIPAN"
+        }
+      ],
+      "filmLink": "现实中真有国家级官方 UAP 调查机构",
+      "connects": [
+        "cefaa",
+        "condign"
+      ]
+    },
+    {
+      "id": "cefaa",
+      "cluster": "world",
+      "tier": "documented",
+      "year": "1997",
+      "title": "CEFAA 智利官方 UAP 委员会",
+      "claim": "智利民航总局 DGAC 下属官方机构，1997 成立，由军方、学界、航管组成，以科学方法分析航空 UAP；经手 2010 El Bosque 七机位同步拍到的飞行物、2014 海军红外视频（CEFAA 称『无法识别』）。官方机构+多方数据🟢，但分析有分歧、未确认外星。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Newsweek · 智利海军无法识别的视频",
+          "url": "https://www.newsweek.com/chilean-navy-id-mysterious-aircraft-caught-video-539786"
+        },
+        {
+          "label": "Universe Today · 智利政府解密 UFO 视频",
+          "url": "https://www.universetoday.com/articles/chilean-government-releases-declassified-ufo-video"
+        }
+      ],
+      "filmLink": "另一国军方红外视频『无法识别』",
+      "connects": [
+        "geipan",
+        "operacao-prato"
+      ]
+    },
+    {
+      "id": "falcon-lake",
+      "cluster": "world",
+      "tier": "documented",
+      "year": "1967",
+      "title": "猎鹰湖事件（迈卡拉克）",
+      "claim": "1967 加拿大曼尼托巴，勘探者 Michalak 称近距接触着陆飞行物后被高热灼伤。硬证据是物理痕迹+官方档案：医院记录躯干银元大小烧伤、RCMP 与军方查出现场放射性污染、多机构存档，被 CBC 称『加拿大记录最完整的 UFO 案』。但目击仅一人，『飞碟』读解未证实。",
+      "image": "assets/falconlake.jpg",
+      "imageCredit": "Falcon Lake（Wikimedia）",
+      "video": null,
+      "youtube": "https://www.youtube.com/watch?v=Hx968LHEXiY",
+      "sources": [
+        {
+          "label": "CBC News · 加拿大记录最完整的 UFO 案",
+          "url": "https://www.cbc.ca/news/canada/manitoba/falcon-lake-incident-book-anniversary-1.4121639"
+        },
+        {
+          "label": "曼尼托巴大学 · Falcon Lake 档案",
+          "url": "https://news.umanitoba.ca/the-falcon-lake-ufo-files/"
+        }
+      ],
+      "filmLink": "有放射性物理痕迹的接触案",
+      "connects": [
+        "operacao-prato",
+        "valentich"
+      ]
+    },
+    {
+      "id": "condign",
+      "cluster": "world",
+      "tier": "documented",
+      "year": "2000",
+      "title": "英国 Project Condign",
+      "claim": "Project Condign 是英国国防情报参谋部 1997–2000 的机密 UFO 研究，汇编约 1 万份报告成 400 页报告，原标『Secret UK Eyes Only』，2006 经信息自由法解密。官方机密研究+解密档案🟢；结论 UAP『存在不可争辩』但『无敌意/非受控』，多归因大气等离子体。",
+      "image": "assets/condign.jpg",
+      "imageCredit": "Project Condign 报告（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Project Condign",
+          "url": "https://en.wikipedia.org/wiki/Project_Condign"
+        },
+        {
+          "label": "David Clarke（FOIA 申请人之一）",
+          "url": "https://drdavidclarke.co.uk/2017/07/02/the-ufo-files-our-man-in-sheffield/"
+        }
+      ],
+      "filmLink": "英国版『政府机密研究后解密』",
+      "connects": [
+        "geipan",
+        "ghost-rockets"
+      ]
+    },
+    {
+      "id": "operacao-prato",
+      "cluster": "world",
+      "tier": "documented",
+      "year": "1977",
+      "title": "巴西飞碟行动 Operação Prato",
+      "claim": "巴西空军 FAB 1977–78 在帕拉州 Colares 开展的官方调查行动，由 Hollanda 上尉指挥，应对居民被光束射伤『吸血』浪潮，收集证词/照片/土壤样本、记录 300+ 起目击。有军方档案的真实官方行动🟢；但行动『未得出异常现象的证据』，外星读解未证实。",
+      "image": "assets/prato.jpg",
+      "imageCredit": "Operação Prato（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Operação Prato",
+          "url": "https://en.wikipedia.org/wiki/Opera%C3%A7%C3%A3o_Prato"
+        },
+        {
+          "label": "原始档案 (Pratt/MUFON)",
+          "url": "https://documents.theblackvault.com/documents/MUFON/Pratt/prato.pdf"
+        }
+      ],
+      "filmLink": "军方正式立案的海外接触浪潮",
+      "connects": [
+        "falcon-lake",
+        "cefaa"
+      ]
+    },
+    {
+      "id": "ghost-rockets",
+      "cluster": "world",
+      "tier": "documented",
+      "year": "1946",
+      "title": "北欧幽灵火箭 Ghost Rockets",
+      "claim": "1946 瑞典及邻国上空约 2000 起火箭状不明飞行物报告，引发瑞典军方调查。瑞典国防参谋部公开声明部分目击『无法以自然现象/瑞典飞机/想象解释』，检验约 30 块残骸（多为炉渣）。当年主流疑苏联试射，外星从未证实🟢（事件+军方调查有据）。",
+      "image": "assets/ghostrockets.jpg",
+      "imageCredit": "Ghost rockets 1946（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Ghost rockets",
+          "url": "https://en.wikipedia.org/wiki/Ghost_rockets"
+        },
+        {
+          "label": "Project 1947 档案",
+          "url": "https://www.project1947.com/fig/1946a.htm"
+        }
+      ],
+      "filmLink": "二战后最早的大规模军方调查",
+      "connects": [
+        "condign"
+      ]
+    },
+    {
+      "id": "valentich",
+      "cluster": "world",
+      "tier": "testimony",
+      "year": "1978",
+      "title": "瓦伦蒂奇失踪",
+      "claim": "1978-10-21 20 岁飞行员 Valentich 驾 Cessna 飞越巴斯海峡，向墨尔本塔台报告上方有不明飞行器、引擎转粗，最后说『它不是飞机』，17 秒金属摩擦声后失联，机身从未寻获。失踪与无线电记录有官方运输部报告🟡，但 UAP 系单一飞行员证词，官方倾向『空间定向障碍』。",
+      "image": "assets/valentich.jpg",
+      "imageCredit": "Frederick Valentich（Wikimedia）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Disappearance of Frederick Valentich",
+          "url": "https://en.wikipedia.org/wiki/Disappearance_of_Frederick_Valentich"
+        },
+        {
+          "label": "Skeptical Inquirer（怀疑分析）",
+          "url": "https://skepticalinquirer.org/2013/11/the-valentich-disappearance-another-ufo-cold-case-solved/"
+        }
+      ],
+      "filmLink": "飞行员遭遇后失踪的悬案",
+      "connects": [
+        "falcon-lake"
+      ]
+    },
+    {
+      "id": "qian-507",
+      "cluster": "china",
+      "tier": "documented",
+      "year": "1980",
+      "title": "钱学森与 507 所人体科学",
+      "claim": "机构真实：507 所（航天医学工程研究所）是解放军真实单位，钱学森任院长，1980 起力推把气功/中医/『人体特异功能』合并为『人体科学』，留 120+ 封相关书信。但研究内容（超能力）本身是伪科学——英文维基明确把『special human body functions』定性 pseudoscientific。人物与机构真🟢，超能力主张已被科学界否定。",
+      "image": "assets/qian.jpg",
+      "imageCredit": "钱学森肖像（Wikimedia Commons）",
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Qian Xuesen · 英文维基",
+          "url": "https://en.wikipedia.org/wiki/Qian_Xuesen"
+        },
+        {
+          "label": "华夏文摘 · 钱学森与507所特异功能研究",
+          "url": "http://hx.cnd.org/2025/01/11/%E6%9D%A8%E6%B4%A5%E6%B6%9B%EF%BC%9A%E9%92%B1%E5%AD%A6%E6%A3%AE%E4%B8%8E507%E6%89%80%E8%8D%92%E5%94%90%E7%9A%84%E7%89%B9%E5%BC%82%E5%8A%9F%E8%83%BD%E7%A0%94%E7%A9%B6/"
+        }
+      ],
+      "filmLink": "对照美国线：另一大国体制也曾正式研究超常现象",
+      "connects": [
+        "qigong-craze",
+        "bureau-749"
+      ]
+    },
+    {
+      "id": "qigong-craze",
+      "cluster": "china",
+      "tier": "fringe",
+      "year": "1987",
+      "title": "人体特异功能热：张宝胜",
+      "claim": "已证伪：1980s 席卷中国的『气功热/特异功能热』，张宝胜号称耳朵识字、意念搬运，被捧『国宝级大师』、接入国防科工委下属 506 所（注意是 506 非钱学森的 507）长达 16 年；1988 被国际反伪科学组织 CSICOP 揭穿障眼法掉包，1995 表演失败后以诈骗罪被批捕🔴。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Zhang Baosheng · 英文维基",
+          "url": "https://en.wikipedia.org/wiki/Zhang_Baosheng"
+        },
+        {
+          "label": "腾讯新闻·短史记",
+          "url": "https://news.qq.com/rain/a/CRI2018080700928500"
+        }
+      ],
+      "filmLink": "超能力研究热的真实兴衰（最终被揭穿）",
+      "connects": [
+        "qian-507"
+      ]
+    },
+    {
+      "id": "bureau-749",
+      "cluster": "china",
+      "tier": "fiction",
+      "year": "2024",
+      "title": "749 局（传说+电影）",
+      "claim": "主要是网络传说+电影，无可信的真实机构记录🎬。流传称 1974 中央批准成立代号『749』的军方超自然研究机构，但缺官方/学术佐证，更像都市传说、常与真实的 507 所混淆。2024 陆川电影《749局》（票房约 3.75 亿）将其搬上银幕；导演自称曾在 749 局工作系宣传话术、未经独立证实。硬证据≈零。",
+      "image": null,
+      "video": null,
+      "youtube": "https://www.youtube.com/watch?v=n_CI0s_usTI",
+      "sources": [
+        {
+          "label": "749局真实存在吗（知乎讨论）",
+          "url": "https://www.zhihu.com/question/5042095464"
+        },
+        {
+          "label": "Bureau 749 (2024) · IMDb",
+          "url": "https://www.imdb.com/title/tt10210064/"
+        }
+      ],
+      "filmLink": "和《揭秘日》一样：把传说拍成电影",
+      "connects": [
+        "qian-507",
+        "qigong-craze"
+      ]
+    },
+    {
+      "id": "meng-zhaoguo",
+      "cluster": "china",
+      "tier": "testimony",
+      "year": "1994",
+      "title": "孟照国 凤凰山事件",
+      "claim": "目击者证词、无实物：1994-06 黑龙江五常凤凰山，工人孟照国称与不明发光物三次接触，自述与 3 米高六指女外星人接触、被带上飞船。当地科委查到焦痕树枝/异常石块但来源存疑；2003 催眠下通过测谎——但批评指幻觉者同样能通过、且全程无物证🟡。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "孟照国事件 · 维基百科",
+          "url": "https://zh.wikipedia.org/zh-hans/%E5%AD%9F%E7%85%A7%E5%9B%BD%E4%BA%8B%E4%BB%B6"
+        },
+        {
+          "label": "知乎 · 揭秘 1994 凤凰山",
+          "url": "https://zhuanlan.zhihu.com/p/647611550"
+        }
+      ],
+      "filmLink": "中国最著名的『接触』自述",
+      "connects": [
+        "hangzhou-airport",
+        "qian-507"
+      ]
+    },
+    {
+      "id": "hangzhou-airport",
+      "cluster": "china",
+      "tier": "documented",
+      "year": "2010",
+      "title": "杭州萧山机场关闭",
+      "claim": "事件真实有主流媒体记录、但『UFO』未成立：2010-07-07 晚约 8:40 两架待降航班机组报告不明飞行物，萧山机场紧急关闭约 1 小时、约 18 架次受影响。但空管雷达并未捕捉到该物体；北京天文馆专家分析为飞机频闪灯、气象部门称『阳光反射于飞机』。机场关闭是事实🟢，外星未证实。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "ABC News",
+          "url": "https://abcnews.go.com/International/ufo-china-closes-airport-prompts-investigation/story?id=11159531"
+        },
+        {
+          "label": "百度百科 · 杭州机场不明飞行物事件",
+          "url": "https://baike.baidu.com/item/%E6%9D%AD%E5%B7%9E%E6%9C%BA%E5%9C%BA%E4%B8%8D%E6%98%8E%E9%A3%9E%E8%A1%8C%E7%89%A9%E4%BA%8B%E4%BB%B6/12596602"
+        }
+      ],
+      "filmLink": "中国官方层面真实发生的航空 UFO 干扰",
+      "connects": [
+        "meng-zhaoguo"
+      ]
+    }
+  ]
+}

@@ -46,6 +46,14 @@
       url: '/eastink.html'
     },
     {
+      glyph: '秘',
+      name: 'Disclosure',
+      zh: '秘 · 揭秘日证据墙',
+      desc: '看完斯皮尔伯格《Disclosure Day 揭秘日》像在看纪录片，于是把片里的外星 / UFO 线索用 solid source 串成一面 FBI 探案证据墙：罗斯威尔、蓝皮书、Tic-Tac、国会听证、各国官方档案……每条都标证据等级，点开看核验过的来源与影像。',
+      en: 'Spielberg’s "Disclosure Day" felt like a documentary, so I pinned its alien/UFO threads onto an FBI-style evidence wall — every lead graded by how solid its evidence is, with verified sources.',
+      url: '/disclosure/'
+    },
+    {
       glyph: '酿',
       name: 'Next…',
       zh: '下一个小东西',

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DISCLOSURE 揭秘日 · 专案档案墙</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="case-header">
+      <div class="case-id">
+        <p class="case-eyebrow">EVIDENCE BOARD · 证据墙</p>
+        <h1 id="case-title">DISCLOSURE <span class="seal">㊙</span> 揭秘日</h1>
+        <p id="case-no" class="case-no">CASE FILE №——</p>
+      </div>
+
+      <div class="case-controls">
+        <div class="filter-block">
+          <span class="ctl-label">证据等级 / FILTER</span>
+          <div id="tier-filters" class="tier-filters" role="group" aria-label="按证据等级筛选"></div>
+          <div class="quick-row">
+            <button id="show-documented" class="ghost-btn" type="button">只看实证</button>
+            <button id="show-all" class="ghost-btn" type="button">全部 ALL</button>
+          </div>
+        </div>
+        <div class="filter-block">
+          <span class="ctl-label">版块 / SECTION（点击高亮）</span>
+          <div id="section-filters" class="section-filters" role="group" aria-label="按版块筛选"></div>
+        </div>
+        <div class="meter-block" aria-live="polite">
+          <div class="meter-top">
+            <span class="ctl-label">证据可信度 / EVIDENCE</span>
+            <span id="confidence-score" class="meter-score">—</span>
+          </div>
+          <div class="meter-track"><div id="confidence-fill" class="meter-fill"></div></div>
+          <p id="confidence-caption" class="meter-caption">读取案卷中…</p>
+          <p class="meter-legend">🟢实证 → 🟡证词 → 🔴未证实　·　数字越高=当前证据越扎实</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="case-main">
+      <section id="board" class="board" aria-label="证据墙">
+        <svg id="string-layer" class="string-layer" aria-hidden="true"></svg>
+        <div id="cards-layer" class="cards-layer"></div>
+        <p id="empty-state" class="empty-state" hidden>该证据等级下没有线索 / No leads at this tier</p>
+        <a class="contact-note" href="https://x.com/LindalyX" target="_blank" rel="noopener noreferrer">📌 有线索 / 想补充？<b>𝕏 找 @LindalyX →</b></a>
+      </section>
+
+      <aside id="dossier" class="dossier" tabindex="-1" aria-live="polite" aria-label="案件档案">
+        <div class="dossier-tab">CASE DOSSIER · 档案</div>
+        <div id="dossier-media" class="dossier-media"></div>
+        <div class="dossier-head">
+          <h2 id="dossier-title">选取一条线索</h2>
+          <span id="dossier-year" class="dossier-year"></span>
+        </div>
+        <div id="dossier-stamp" class="dossier-stamp"></div>
+        <p id="dossier-claim" class="dossier-claim">点击墙上任意证据，查看核验过的来源与影像。</p>
+        <dl class="dossier-meta">
+          <div><dt>对应影片</dt><dd id="dossier-filmlink">—</dd></div>
+          <div><dt>线索类别</dt><dd id="dossier-cluster">—</dd></div>
+        </dl>
+        <div class="sources-block">
+          <h3>已核验来源 / VERIFIED SOURCES</h3>
+          <ul id="dossier-sources"></ul>
+        </div>
+        <p id="dossier-credit" class="dossier-credit"></p>
+      </aside>
+    </main>
+
+    <footer class="case-footer">
+      影视海报 / 剧照 / 历史影像仅用于非商业的资料评述，版权归原方所有；史料来源见各节点档案。证据分级为编者判断，欢迎指正 · 𝕏 <a href="https://x.com/LindalyX" target="_blank" rel="noopener noreferrer">@LindalyX</a>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
