@@ -1145,6 +1145,83 @@
       "connects": [
         "meng-zhaoguo"
       ]
+    },
+    {
+      "id": "law-of-one",
+      "cluster": "channeled",
+      "tier": "fringe",
+      "year": "1981–84",
+      "title": "《一的法则》Ra 材料",
+      "claim": "L/L Research（Don Elkins / Carla Rueckert / Jim McCarty）1981–84 进行的 106 次『通灵』记录：一个自称『Ra』的存在（称自己是约 26 亿年前形成于金星的『六密度社会记忆复合体』）借 Carla 之口口述，提出『密度 / 收割 / 服务他人』等宇宙观。纯通灵材料、无任何实证基础🔴，但在新纪元 / UFO 灵性圈影响极大。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "官方 · lawofone.info",
+          "url": "https://www.lawofone.info/"
+        },
+        {
+          "label": "RationalWiki（怀疑视角）",
+          "url": "https://rationalwiki.org/wiki/Ra_Material"
+        }
+      ],
+      "filmLink": "外星接触叙事的『通灵宇宙观』一端",
+      "connects": [
+        "dolores-cannon",
+        "thiaoouba"
+      ]
+    },
+    {
+      "id": "thiaoouba",
+      "cluster": "channeled",
+      "tier": "fringe",
+      "year": "1989",
+      "title": "《海奥华预言》",
+      "claim": "法裔澳籍 Michel Desmarquet 自述 1987-06-26 半夜被一名叫 Thao 的外星人『实体带走』9 天、到金色星球 Thiaoouba，被告知地球远古史、Mu / 亚特兰蒂斯、摩西与耶稣的『真相』及转世 / 星际旅行等。纯个人经历自述、无任何证据🔴；在华语灵性圈流传极广。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Simon & Schuster（出版方页）",
+          "url": "https://www.simonandschuster.com/books/Thiaoouba-Prophecy/Michel-Desmarquet/9781591435631"
+        },
+        {
+          "label": "Amazon · Thiaoouba Prophecy",
+          "url": "https://www.amazon.com/Thiaoouba-Prophecy-Michel-Desmarquet/dp/B004QHRPKG"
+        }
+      ],
+      "filmLink": "『被带上飞船获授真理』叙事的代表",
+      "connects": [
+        "law-of-one",
+        "dolores-cannon"
+      ]
+    },
+    {
+      "id": "earth-chronicles",
+      "cluster": "channeled",
+      "tier": "fringe",
+      "year": "1976+",
+      "title": "《地球编年史》Sitchin",
+      "claim": "Zecharia Sitchin 从 1976《第十二个天体》起的七卷系列，称苏美尔泥板记载『阿努纳奇 Anunnaki』——来自行星 Nibiru 的外星种族——基因改造创造了人类。但其苏美尔文翻译与核心主张被主流亚述学界 / 科学界否定（楔形文字学者指其误读、Nibiru 行星不存在），属伪历史 / 伪科学🔴。『古代外星人』说的源头之一。",
+      "image": null,
+      "video": null,
+      "youtube": null,
+      "sources": [
+        {
+          "label": "Wikipedia · Zecharia Sitchin",
+          "url": "https://en.wikipedia.org/wiki/Zecharia_Sitchin"
+        },
+        {
+          "label": "Wikipedia · Ancient astronauts",
+          "url": "https://en.wikipedia.org/wiki/Ancient_astronauts"
+        }
+      ],
+      "filmLink": "『古代外星人 / 远古干预』假说的源头",
+      "connects": [
+        "law-of-one"
+      ]
     }
   ]
 }

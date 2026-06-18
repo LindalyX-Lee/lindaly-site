@@ -11,7 +11,7 @@ const ZONES = {
   "abduction": { cx:16, cy:74, cols:2, dx:13,   dy:9   },
   "movement":  { cx:47, cy:87, cols:5, dx:13,   dy:8   },
   "china":     { cx:85, cy:75, cols:2, dx:13,   dy:9   },
-  "channeled": { cx:30, cy:90, cols:2, dx:13,   dy:8   }
+  "channeled": { cx:31, cy:88, cols:3, dx:13,   dy:8   }
 };
 const FILM_POS = { "disclosure-day":[50,39], "close-encounters":[36,48] };
 

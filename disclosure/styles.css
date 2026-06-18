@@ -53,7 +53,7 @@ body{background:radial-gradient(120% 70% at 50% -10%, #2a2017 0%, var(--desk) 60
 .case-main{display:grid;grid-template-columns:1fr 350px;gap:0;align-items:start}
 
 /* ---------- cork board (tall wall) ---------- */
-.board{position:relative;margin:14px;border-radius:6px;overflow:hidden;min-height:1500px;
+.board{position:relative;margin:14px;border-radius:6px;overflow:hidden;min-height:1620px;
   background-color:var(--cork-b);
   background-image:
     radial-gradient(circle at 20% 30%, rgba(0,0,0,.10) 0 1px, transparent 1px),
